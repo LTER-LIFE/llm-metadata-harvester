@@ -18,7 +18,7 @@ This repository contains the official implementation of the paper:
 
 ### 🔍 Abstract
 
-![](imgs/diagram metadata harvester v2_page-0001.jpg)
+![](imgs/diagram_metadata_harvester_v2_page-0001.jpg)
 
 Large, open datasets can accelerate ecological research, particularly by enabling researchers to develop new insights by reusing datasets from across different sources. However, in order to find the most suitable datasets to combine, researchers have to navigate diverse ecological and environmental data provider platforms with varying metadata availability and standards. To overcome this obstacle, we have developed a large language model (LLM)-based metadata harvester that flexibly extracts metadata from any dataset landing page, and converts these to a user-defined, unified format. We validate that our tool is able to extract both structured and unstructured metadata with equal accuracy, aided by our LLM post-processing protocol. Further, we use LLMs to identify links between datasets, either using embedding similarity or by converting extracted metadata to ontologies. Therefore, our tool -- flexibly linking the metadata of different datasets -- can be used for graph-based queries, for example for finding relevant ecological and environmental datasets in a virtual research environment.
 
