@@ -2,8 +2,11 @@
 
 
 > **Paper Title:** Flexible metadata harvesting for ecology using large language models
+>
 > **Authors:** Zehao Lu [0009−0001−6518−2744], Thijs L van der Plas [0000−0001−5490−1785], Parinaz Rashidi [0000−0002−0898−0942], W Daniel Kissling [0000−0002−7274−6755], and Ioannis N Athanasiadis [0000−0003−2764−0078]
+>
 > **Conference/Journal:** EcoDL 2025 Workshop
+>
 > **DOI / arXiv:** [Link to paper](https://...)
 
 ---
