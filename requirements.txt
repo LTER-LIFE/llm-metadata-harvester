@@ -1,0 +1,6 @@
+openai
+google
+dotenv
+tqdm
+collections
+tiktoken
