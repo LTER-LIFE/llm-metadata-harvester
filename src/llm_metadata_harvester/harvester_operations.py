@@ -1,6 +1,3 @@
-from openai import OpenAI
-from google import genai
-from dotenv import load_dotenv
 from utils import (
     logger,
     clean_str,
@@ -84,7 +81,17 @@ def _get_nightly_entity_template(meta_field_dict: dict) -> str:
 def extract_entities(text: str,
                      meta_field_dict: dict = None,
                      llm: LLMClient = None,
-                     source_url: str = "") -> dict:
+                     source_url: str = "",
+                     return_initial_result: bool = False) -> dict | tuple[dict, dict]:
+    """
+    Extract entities and relationships from text using LLM.
+    Args:
+        text (str): The input text to process.
+        meta_field_dict (dict): Dictionary of metadata fields to extract.
+        llm (LLMClient): The LLM client to use for entity extraction.
+        source_url (str): Optional URL for the source of the text.
+        return_initial_result (bool): If True, return both initial and cleaned nodes.
+    """
     # Split text into chunks
     chunks = chunk_text(text, llm, max_tokens=4000)  # Leave room for completion
     entity_types = meta_field_dict.keys()
@@ -142,8 +149,11 @@ def extract_entities(text: str,
         llm=llm,
         file_path=source
     )
-
-    return initial_nodes, cleaned_nodes
+    if return_initial_result:
+        # Return both initial and cleaned nodes
+        return initial_nodes, cleaned_nodes
+    else:
+        return cleaned_nodes
 
 def _format_prompt(params: dict) -> str:
     # Format the prompt template with the provided parameters

@@ -1,6 +1,11 @@
 openai
 google
-dotenv
+python-dotenv
 tqdm
-collections
 tiktoken
+requests
+beautifulsoup4
+playwright
+nest_asyncio
+pyyaml
+playwright-sync

@@ -18,7 +18,7 @@ class LLMClient:
         else:
             raise ValueError(f"Unsupported model: {model_name}")
 
-    def chat(self, messages: list[dict], temperature=0.0, max_tokens=2000):
+    def chat(self, messages: list[dict], max_tokens=2000):
         if self.provider == "openai":
             return self.client.chat.completions.create(
                 model=self.model,
