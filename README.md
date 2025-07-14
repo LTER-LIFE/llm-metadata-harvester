@@ -56,3 +56,4 @@ Once you are signed in, go to the dashboard, you will see a "Get API key" button
 ##### Step 3: Create Your API Key
 
 In the next screen, click on "Create API key". You may be prompted to create the API key in a new or existing project. After making your selection, your unique API key will be generated. Be sure to copy this key and store it in a secure location, as it is essential for using the Gemini API.
+<img width="1777" height="732" alt="Screenshot from 2025-07-14 17-59-04" src="https://github.com/user-attachments/assets/36e9c405-c933-4558-9c64-c3a5e8821a79" />
