@@ -7,3 +7,6 @@ requests
 beautifulsoup4
 playwright
 nest_asyncio
+pytest
+pytest-mock
+pytest-asyncio
