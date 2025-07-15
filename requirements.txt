@@ -7,4 +7,3 @@ requests
 beautifulsoup4
 playwright
 nest_asyncio
-playwright-sync
