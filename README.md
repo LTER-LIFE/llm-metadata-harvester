@@ -26,7 +26,7 @@ Our methods are described in more detail in our upcoming paper, and further data
 
 ### Prerequisites
 
-- Python 3.8 or higher
+- Python 3.9 or higher
 - An API key for either [OpenAI](https://platform.openai.com/) or [Google Gemini](https://aistudio.google.com/) (see [API Key Setup](#api-key-setup) below)
 
 ### Install from GitHub
