@@ -27,7 +27,7 @@ class TestLLMClient:
         """Test initialization of Gemini client"""
         mock_getenv.return_value = "test_api_key"
         mock_genai_instance = Mock()
-        mock_genai.GenerativeModel.return_value = mock_genai_instance
+        mock_genai.Client.return_value = mock_genai_instance
         
         client = LLMClient("gemini-pro", temperature=0.7)
         
@@ -35,8 +35,7 @@ class TestLLMClient:
         assert client.temperature == 0.7
         assert client.provider == "gemini"
         assert client.client == mock_genai_instance
-        mock_genai.configure.assert_called_once_with(api_key="test_api_key")
-        mock_genai.GenerativeModel.assert_called_once_with("gemini-pro")
+        mock_genai.Client.assert_called_once_with(api_key="test_api_key")
     
     def test_init_unsupported_model(self):
         """Test initialization with unsupported model"""
@@ -46,7 +45,7 @@ class TestLLMClient:
     @patch('llm_metadata_harvester.llm_client.genai', None)
     def test_init_gemini_without_genai_package(self):
         """Test initialization with Gemini when genai package is not available"""
-        with pytest.raises(ImportError, match="google-generativeai package is required"):
+        with pytest.raises(ImportError, match="google package is required"):
             LLMClient("gemini-pro")
     
     @patch('llm_metadata_harvester.llm_client.OpenAI')
@@ -85,11 +84,11 @@ class TestLLMClient:
         
         # Mock Gemini client and response
         mock_genai_instance = Mock()
-        mock_genai.GenerativeModel.return_value = mock_genai_instance
+        mock_genai.Client.return_value = mock_genai_instance
         
         mock_response = Mock()
         mock_response.text = "Gemini response"
-        mock_genai_instance.generate_content.return_value = mock_response
+        mock_genai_instance.models.generate_content.return_value = mock_response
         
         client = LLMClient("gemini-pro")
         messages = [{"role": "user", "content": "Hello"}]
@@ -97,7 +96,10 @@ class TestLLMClient:
         result = client.chat(messages, max_tokens=1000)
         
         assert result == "Gemini response"
-        mock_genai_instance.generate_content.assert_called_once_with("Hello")
+        mock_genai_instance.models.generate_content.assert_called_once_with(
+            model="gemini-pro",
+            contents="Hello"
+        )
     
     @patch('llm_metadata_harvester.llm_client.OpenAI')
     @patch('llm_metadata_harvester.llm_client.os.getenv')
@@ -148,8 +150,8 @@ class TestLLMClient:
         mock_getenv.return_value = "test_api_key"
         
         mock_genai_instance = Mock()
-        mock_genai.GenerativeModel.return_value = mock_genai_instance
-        mock_genai_instance.generate_content.side_effect = Exception("Gemini API Error")
+        mock_genai.Client.return_value = mock_genai_instance
+        mock_genai_instance.models.generate_content.side_effect = Exception("Gemini API Error")
         
         client = LLMClient("gemini-pro")
         messages = [{"role": "user", "content": "Hello"}]

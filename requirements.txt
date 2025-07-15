@@ -1,5 +1,5 @@
 openai
-google
+google-genai
 python-dotenv
 tqdm
 tiktoken

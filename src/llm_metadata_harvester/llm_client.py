@@ -1,5 +1,8 @@
 from openai import OpenAI
-from google import genai
+try:
+    from google import genai
+except ImportError:
+    genai = None
 from dotenv import load_dotenv
 import os
 
@@ -13,6 +16,8 @@ class LLMClient:
             self.provider = "openai"
             self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         elif model_name.startswith("gemini"):
+            if genai is None:
+                raise ImportError("google package is required for Gemini models. Install it with: pip install google")
             self.temperature = temperature
             self.provider = "gemini"
             self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
