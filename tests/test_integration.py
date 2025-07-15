@@ -194,12 +194,12 @@ class TestIntegrationWorkflow:
         # Setup mocks
         mock_getenv.return_value = "test_api_key"
         mock_genai_instance = Mock()
-        mock_genai.Client.return_value = mock_genai_instance
+        mock_genai.GenerativeModel.return_value = mock_genai_instance
         
         # Mock Gemini response
         mock_response = Mock()
         mock_response.text = '''("entity"<|>"Test Dataset"<|>"Title"<|>"A test dataset")##'''
-        mock_genai_instance.models.generate_content.return_value = mock_response
+        mock_genai_instance.generate_content.return_value = mock_response
         
         llm = LLMClient("gemini-pro")
         meta_field_dict = {"Title": "Dataset title"}
@@ -216,7 +216,7 @@ class TestIntegrationWorkflow:
             )
             
             # Verify Gemini was called
-            mock_genai_instance.models.generate_content.assert_called()
+            mock_genai_instance.generate_content.assert_called()
             assert isinstance(result, dict)
     
     def test_metadata_field_processing(self):
