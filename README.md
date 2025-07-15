@@ -15,7 +15,7 @@ Our methods are described in more detail in our upcoming paper, and further data
 
 ```bash
 .
-├── src/                # Sourc code
+├── src/                # Source code
 ├── imgs/               # Images
 ├── requirements.txt    # Python dependencies
 └── README.md           # This file

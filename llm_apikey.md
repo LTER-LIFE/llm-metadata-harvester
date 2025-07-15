@@ -9,7 +9,7 @@ To use this software, you need access to a large language model (LLM) via an API
 Sign up for Chat GPT at https://platform.openai.com/signup?launch
 You can register using your email address or an existing Google, Microsoft, or Apple account.
 
-##### Step 2: Open dashborad
+##### Step 2: Open dashboard
 After registration, you will go to to OpenAI dashboard https://platform.openai.com/api-keys to get your API key.
 
 ##### Step 3: Create API key
