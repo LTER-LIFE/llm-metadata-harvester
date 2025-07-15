@@ -9,6 +9,7 @@ class LLMClient:
     def __init__(self, model_name: str, temperature: float = 0.0):
         self.model = model_name
         if model_name.startswith("gpt"):
+            self.temperature = temperature
             self.provider = "openai"
             self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         elif model_name.startswith("gemini"):
