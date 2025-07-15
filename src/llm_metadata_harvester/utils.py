@@ -12,7 +12,7 @@ import re
 from dataclasses import dataclass
 from functools import wraps
 from hashlib import md5
-from typing import Any, Callable, TYPE_CHECKING
+from typing import Any, Callable, TYPE_CHECKING, Union, List, Dict, Optional
 import xml.etree.ElementTree as ET
 from llm_metadata_harvester.prompt import PROMPTS
 from dotenv import load_dotenv
@@ -110,9 +110,9 @@ def truncate_list_by_token_size(
 async def use_llm_func_with_cache(
     input_text: str,
     use_llm_func: callable,
-    llm_response_cache: "BaseKVStorage | None" = None,
+    llm_response_cache: "Optional[BaseKVStorage]" = None,
     max_tokens: int = None,
-    history_messages: list[dict[str, str]] = None,
+    history_messages: List[Dict[str, str]] = None,
     cache_type: str = "extract",
 ) -> str:
     """Call LLM function with cache support

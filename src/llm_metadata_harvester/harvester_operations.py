@@ -36,6 +36,7 @@ from llm_metadata_harvester.utils import (
 from collections import defaultdict
 from llm_metadata_harvester.cheatsheet import CHEATSHEETS
 from llm_metadata_harvester.prompt import PROMPTS
+from typing import Union, Tuple
 
 import tiktoken
 import re
@@ -108,7 +109,7 @@ def extract_entities(text: str,
                      meta_field_dict: dict = None,
                      llm: LLMClient = None,
                      source_url: str = "",
-                     return_initial_result: bool = False) -> dict | tuple[dict, dict]:
+                     return_initial_result: bool = False) -> Union[dict, Tuple[dict, dict]]:
     """
     Extract entities and relationships from text using LLM.
     Args:
