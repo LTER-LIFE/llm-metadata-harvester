@@ -14,8 +14,6 @@ from functools import wraps
 from hashlib import md5
 from typing import Any, Callable, TYPE_CHECKING
 import xml.etree.ElementTree as ET
-import numpy as np
-import tiktoken
 from llm_metadata_harvester.prompt import PROMPTS
 from dotenv import load_dotenv
 

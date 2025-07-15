@@ -1,4 +1,4 @@
-from utils import (
+from llm_metadata_harvester.utils import (
     logger,
     clean_str,
     compute_mdhash_id,
@@ -7,15 +7,14 @@ from utils import (
     split_string_by_multi_markers,
 )
 from collections import defaultdict
-from cheatsheet import CHEATSHEETS
-from prompt import PROMPTS
+from llm_metadata_harvester.cheatsheet import CHEATSHEETS
+from llm_metadata_harvester.prompt import PROMPTS
 
 import tiktoken
 import re
-import os
 
 from functools import wraps
-from llm_client import LLMClient
+from llm_metadata_harvester.llm_client import LLMClient
 
 
 def chunk_text(text: str,

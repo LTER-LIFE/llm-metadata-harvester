@@ -7,5 +7,4 @@ requests
 beautifulsoup4
 playwright
 nest_asyncio
-pyyaml
 playwright-sync
