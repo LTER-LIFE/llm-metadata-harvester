@@ -403,7 +403,7 @@ def _post_processing_records(all_records: list[str],
         }
     ]
 
-    result = llm.chat(messages, temperature=0.0, max_tokens=2000)
+    result = llm.chat(messages, max_tokens=2000)
     records = split_string_by_multi_markers(
         result,
         [context_base["record_delimiter"], context_base["completion_delimiter"], "\n"],
