@@ -85,3 +85,7 @@ To verify the installation worked correctly:
 import llm_metadata_harvester
 print("Installation successful!")
 ```
+
+## Example
+
+example of using this software can be found at [`data-field-filling.ipynb`](data-field-filling.ipynb)
