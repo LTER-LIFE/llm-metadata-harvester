@@ -89,6 +89,6 @@ print("Installation successful!")
 ## Example
 
 Here is an example of the detailed output produced by this tool:
-![detailed_outputs](imgs/Frame%201-2.pdf)
+![Frame 1-2_page-0001](https://github.com/user-attachments/assets/0016ac4c-700b-4a20-88a3-a4d2da77a48f)
 
 An example of using this software can be found in the [`data-field-filling.ipynb`](data-field-filling.ipynb) notebook.
