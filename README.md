@@ -11,7 +11,7 @@ Our methods are described in more detail in our upcoming paper, and further data
 
 ---
 
-## 🧱 Folder Structure
+## 🧱 Repo Structure
 
 ```bash
 .
@@ -65,7 +65,7 @@ This tool requires an API key for a Large Language Model service. You can use ei
 # For OpenAI
 export OPENAI_API_KEY="your-api-key-here"
 
-# For Gemini  
+# For Gemini
 export GEMINI_API_KEY="your-api-key-here"
 ```
 
@@ -88,4 +88,7 @@ print("Installation successful!")
 
 ## Example
 
-example of using this software can be found at [`data-field-filling.ipynb`](data-field-filling.ipynb)
+Here is an example of the detailed output produced by this tool:
+![detailed output example](imgs/detailed_output.png)
+
+An example of using this software can be found in the [`data-field-filling.ipynb`](data-field-filling.ipynb) notebook.
