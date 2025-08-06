@@ -9,18 +9,21 @@ import os
 load_dotenv()
 
 class LLMClient:
-    def __init__(self, model_name: str, temperature: float = 0.0):
+    def __init__(self, model_name: str, temperature: float = 0.0, api_key: str = None):
         self.model = model_name
+
         if model_name.startswith("gpt"):
             self.temperature = temperature
             self.provider = "openai"
-            self.client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            key = api_key or os.getenv("OPENAI_API_KEY")
+            self.client = OpenAI(api_key=key)
         elif model_name.startswith("gemini"):
             if genai is None:
                 raise ImportError("google package is required for Gemini models. Install it with: pip install google")
             self.temperature = temperature
             self.provider = "gemini"
-            self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+            key = api_key or os.getenv("OPENAI_API_KEY")
+            self.client = genai.Client(api_key=key)
         else:
             raise ValueError(f"Unsupported model: {model_name}")
 
