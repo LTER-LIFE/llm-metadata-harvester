@@ -22,7 +22,7 @@ class LLMClient:
                 raise ImportError("google package is required for Gemini models. Install it with: pip install google")
             self.temperature = temperature
             self.provider = "gemini"
-            key = api_key or os.getenv("OPENAI_API_KEY")
+            key = api_key or os.getenv("GEMINI_API_KEY")
             self.client = genai.Client(api_key=key)
         else:
             raise ValueError(f"Unsupported model: {model_name}")
