@@ -290,8 +290,6 @@ def node_2_metadata(clean_nodes: dict) -> dict:
     """Convert nodes to metadata format"""
     metadata = {}
     for node_key, node_value_list in clean_nodes.items():
-        print(f"Processing node key: {node_key}")
-        print(f"Node value list: {node_value_list}")
         metadata_value = ""
         for node_value in node_value_list:
             metadata_value += node_value["entity_value"] + "; "
