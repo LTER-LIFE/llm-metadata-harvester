@@ -285,3 +285,16 @@ def clean_text(text: str) -> str:
     
 def read_meta_from_json(file_path: str) -> dict:
     pass
+
+def node_2_metadata(clean_nodes: dict) -> dict:
+    """Convert nodes to metadata format"""
+    metadata = {}
+    for node_key, node_value_list in clean_nodes.items():
+        print(f"Processing node key: {node_key}")
+        print(f"Node value list: {node_value_list}")
+        metadata_value = ""
+        for node_value in node_value_list:
+            metadata_value += node_value["entity_value"] + "; "
+        metadata[node_key] = metadata_value.strip()
+
+    return metadata
