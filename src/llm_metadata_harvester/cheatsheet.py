@@ -193,11 +193,14 @@ The metadata information for each entity is embedded within the description text
 ---Steps---
 1. For each tuple, identify the entity and analyze its corresponding description.
 2. From the description, extract the concise information relevant to the entity.
-    For example, given the text "A0h06_NlSEuNlium5OO3FA, The unique identifier for the metadata record is A0h06_NlSEuNlium5OO3FA." and entity "Unique Identifier".
-    the related information should be "A0h06_NlSEuNlium5OO3FA"
-    If the description does not contain the relevant information, return "N/A". If the description contains mulitple pieces of information, combine them into a single string.
+    - If the description does not contain the relevant information, you **must** return "N/A".
+    - If the description contains multiple pieces of information, combine them into a single string.
 
-2. Output the enriched list in the same tuple format:
+    Example:
+    Input: ("entity"<tuple_delimiter>"Unique Identifier"<tuple_delimiter>"No identifier is present in this description.")
+    Output: ("entity"<tuple_delimiter>"Unique Identifier"<tuple_delimiter>"N/A")
+
+3. Output the enriched list in the same tuple format:
 ("entity"{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_info>)
 
     Use **{record_delimiter}** as the list separator for each entity entry.
