@@ -1,5 +1,8 @@
 # Flexible metadata harvesting for ecology using large language models
 
+[![arXiv](https://img.shields.io/badge/arXiv-2508.20115-b31b1b.svg)](https://arxiv.org/abs/2508.20115)
+
+
 ## 📦 Repository Overview
 
 This repository contains a tool that harvests metadata from dataset landing pages.
