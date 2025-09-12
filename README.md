@@ -1,7 +1,6 @@
-# Flexible metadata harvesting for ecology using large language models
-
 [![arXiv](https://img.shields.io/badge/arXiv-2508.20115-b31b1b.svg)](https://arxiv.org/abs/2508.20115)
 
+# Flexible metadata harvesting for ecology using large language models
 
 ## 📦 Repository Overview
 
