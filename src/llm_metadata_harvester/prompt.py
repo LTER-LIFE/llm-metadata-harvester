@@ -33,7 +33,7 @@ Use {language} as output language.
 
 ---Steps---
 1. Identify all entities. For each identified entity, extract the following information:
-- entity_name: Provide the specific name of the entity mentioned in the input text. This should be the actual name (e.g., "Microsoft", "Amazon River", "Mona Lisa") and not the generic entity type (e.g., "company", "river", "painting"). Use the same language as the input text. If the text is in English, capitalize the name.
+- entity_name: Provide the specific name of the entity mentioned in the input text. This should be the actual name (e.g., "Microsoft", "Amazon River", "Mona Lisa") and not the generic entity type (e.g., "company", "river", "painting"). Use the same language as the input text. If the text is in English, capitalize the name. If the information is not found in the text, use "N/A".
 - entity_type: One of the following types: [{entity_types}]
 - entity_description: Comprehensive description of the entity's attributes and activities, considering {special_interest} for each entity type.
 Format each entity as ("entity"{tuple_delimiter}<entity_name>{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>){record_delimiter}
