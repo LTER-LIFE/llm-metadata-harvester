@@ -1,4 +1,9 @@
 [![arXiv](https://img.shields.io/badge/arXiv-2508.20115-b31b1b.svg)](https://arxiv.org/abs/2508.20115)
+[![License](https://img.shields.io/github/license/LTER-LIFE/llm-metadata-harvester.svg)](LICENSE)
+![Issues](https://img.shields.io/github/issues/LTER-LIFE/llm-metadata-harvester)
+![GitHub Tag](https://img.shields.io/github/v/tag/LTER-LIFE/llm-metadata-harvester)
+[![Python package](https://github.com/LTER-LIFE/llm-metadata-harvester/actions/workflows/python-package.yml/badge.svg)](https://github.com/LTER-LIFE/llm-metadata-harvester/actions/workflows/python-package.yml)
+
 
 # Flexible metadata harvesting for ecology using large language models
 
