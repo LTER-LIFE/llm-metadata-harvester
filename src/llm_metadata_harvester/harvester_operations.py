@@ -33,6 +33,8 @@ from llm_metadata_harvester.utils import (
     normalize_extracted_info,
     split_string_by_multi_markers,
 )
+from llm_metadata_harvester.webutils import extract_full_page_text
+from llm_metadata_harvester.utils import node_2_metadata
 from collections import defaultdict
 from llm_metadata_harvester.cheatsheet import CHEATSHEETS
 from llm_metadata_harvester.prompt import PROMPTS
@@ -465,3 +467,23 @@ def _post_processing_records(all_records: list[str],
             continue
 
     return maybe_nodes, final_nodes
+
+async def metadata_harvest(
+        model_name: str,
+        url: str,
+        meta_field_dict: dict
+
+):
+    full_text = await extract_full_page_text(url)
+    llm = LLMClient(model_name=model_name,
+                    temperature=0.0)
+
+    clean_nodes = extract_entities(
+        text=full_text,
+        meta_field_dict=meta_field_dict,
+        llm=llm
+    )
+
+    metadata = node_2_metadata(clean_nodes)
+
+    return metadata
