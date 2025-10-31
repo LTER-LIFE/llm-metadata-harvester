@@ -11,7 +11,6 @@ load_dotenv()
 class LLMClient:
     def __init__(self, model_name: str, temperature: float = 0.0, api_key: str = None):
         self.model = model_name
-
         if model_name.startswith("gpt"):
             self.temperature = temperature
             self.provider = "openai"
@@ -24,19 +23,23 @@ class LLMClient:
             self.provider = "gemini"
             key = api_key or os.getenv("GEMINI_API_KEY")
             self.client = genai.Client(api_key=key)
+
         else:
-            raise ValueError(f"Unsupported model: {model_name}")
+            raise ValueError(f"Unsupported LLM: {model_name}")
 
     def chat(self, messages: list[dict], max_tokens=2000):
-        if self.provider == "openai":
-            return self.client.chat.completions.create(
-                model=self.model,
-                messages=messages,
-                temperature=self.temperature,
-                max_tokens=max_tokens
-            ).choices[0].message.content
-        elif self.provider == "gemini":
-            return self.client.models.generate_content(
-                model=self.model,
-                contents=messages[-1]["content"]
-            ).text
+        try:
+            if self.provider == "openai":
+                return self.client.chat.completions.create(
+                    model=self.model,
+                    messages=messages,
+                    temperature=self.temperature,
+                    max_tokens=max_tokens
+                ).choices[0].message.content
+            elif self.provider == "gemini":
+                return self.client.models.generate_content(
+                    model=self.model,
+                    contents=messages[-1]["content"]
+                ).text
+        except Exception as e:
+            raise RuntimeError(f"LLM client response failed: Error from LLM provider:\n{e}") from e
