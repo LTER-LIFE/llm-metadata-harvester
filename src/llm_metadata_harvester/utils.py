@@ -36,6 +36,7 @@ import logging
 import logging.handlers
 import os
 import re
+import yaml
 from dataclasses import dataclass
 from functools import wraps
 from hashlib import md5
@@ -296,3 +297,17 @@ def node_2_metadata(clean_nodes: dict) -> dict:
         metadata[node_key] = metadata_value.strip()
 
     return metadata
+
+def dump_meta_to_json(file_path: str, meta: dict, as_yaml: bool = False):
+    """
+    Dump metadata to a JSON/YAML file, creating directories if necessary.
+    """
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    if as_yaml:
+        with open(file_path, "w", encoding="utf-8") as f:
+            yaml.dump(meta, f, allow_unicode=True, sort_keys=False)
+        return
+    else:
+        with open(file_path, "w", encoding="utf-8") as f:
+            json.dump(meta, f, ensure_ascii=False, indent=4)
+        return

@@ -26,9 +26,13 @@ jobs:
         with:
           python-version: "3.x"
 
-      - name: Build release distributions
+      - name: Install build dependencies
         run: |
-          python setup.py sdist bdist_wheel
+          python -m pip install --upgrade pip
+          pip install build
+
+      - name: Build release distributions
+        run: python -m build
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
