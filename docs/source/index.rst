@@ -12,4 +12,5 @@ Welcome! This is the documentation for the LLM metadata harvester.
    :maxdepth: 2
    :caption: Contents:
 
-   api
+   api/llm_metadata_harvester
+   api/modules
