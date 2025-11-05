@@ -1,0 +1,5 @@
+sphinx
+sphinx-rtd-theme
+sphinx-autodoc-typehints
+# numpy  # if your docs import numpy in examples
+# other dependencies required to import your package at doc build time
