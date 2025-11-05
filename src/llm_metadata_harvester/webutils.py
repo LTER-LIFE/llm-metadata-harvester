@@ -3,13 +3,20 @@ from bs4 import BeautifulSoup
 from xml.etree import ElementTree as ET
 
 import asyncio
-from playwright.async_api import async_playwright
+try:
+    from playwright.async_api import async_playwright
+except ImportError:
+    raise ImportError("""
+        Playwright is not installed. Please follow the
+        installation instructions at
+        https://playwright.dev/python/docs/intro to install it.""")
+
 
 
 def readWebContent(url: str) -> BeautifulSoup:
     """
     Reads the content of a webpage and returns a BeautifulSoup object.
-    :param url: The URL of the webpage to read.
+    Param: url(str): The URL of the webpage to read.
     :return: A BeautifulSoup object containing the parsed HTML content.
     """
     response = requests.get(url)
@@ -23,9 +30,26 @@ def readWebContent(url: str) -> BeautifulSoup:
 
 def downloadAndParseXML(url):
     """
-    Downloads metadata XML from the Wadden data service and parses it.
-    Params: url (str): The URL of the XML to download.
-    Returns: tuple: (xml_str, root) where xml_str is the raw XML text and root is the parsed ElementTree root
+    Downloads metadata XML from data portal and parses it.
+
+    Parameters
+    ----------
+    url : str
+        The URL of the XML to download.
+    
+    Returns
+    -------
+    xml_str : str
+        The raw XML text retrieved from the URL.
+    root : xml.etree.ElementTree.Element
+        The parsed ElementTree root of the XML.
+    
+    Raises
+    ------
+    requests.RequestException
+        If there is an issue with the HTTP request.
+    xml.etree.ElementTree.ParseError
+        If the XML cannot be parsed.
     """
 
     # Download the XML
@@ -38,11 +62,36 @@ def downloadAndParseXML(url):
     return xml_str, root
 
 async def extract_full_page_text(url: str) -> str:
+    """
+    Asynchronously extracts all visible text content from a web page.
+
+    This function uses Playwright to launch a headless Chromium browser, navigate
+    to the specified URL, scrolls to the bottom of the page to ensure lazy-loaded
+    content is displayed, and then retrieves all inner text from the page's body.
+
+    Parameters
+    ----------
+    url : str
+        The URL of the webpage to extract text from.
+
+    Returns
+    -------
+    str
+        The full visible text content extracted from the web page.
+
+    Raises
+    ------
+    ImportError
+        If Playwright is not installed.
+
+    Examples
+    --------
+    >>> await extract_full_page_text("https://example.com")
+    """
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
 
-        
         await page.goto(url, wait_until='networkidle')
 
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
