@@ -4,7 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "llm_metadata_harvester"
-version = "0.1.0"
+version = "0.1.2"
+description = "A tool for harvesting metadata from dataset landing pages using Large Language Models."
 requires-python = ">=3.8"
 dependencies = [
     "openai",
@@ -25,6 +26,8 @@ dev = [
     "pytest-asyncio",
     "ipykernel",
 ]
+
+scrape = ["playwright"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
