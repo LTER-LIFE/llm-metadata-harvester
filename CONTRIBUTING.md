@@ -6,7 +6,7 @@ When contributing to this repository, please first discuss the change you wish t
 
 In general, all contributions should be made via Pull Requests.
 
-Please note we have a code of conduct, please follow it in all your interactions with the project.
+Please note we have a (code of conduct)[https://github.com/LTER-LIFE/llm-metadata-harvester/blob/main/CODE_OF_CONDUCT.md], please follow it in all your interactions with the project.
 
 ## Pull Request Process
 1. Please link a PR to the open issue it resolves, if relevant.
