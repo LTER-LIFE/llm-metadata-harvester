@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "llm_metadata_harvester"
+version = "0.1.0"
+requires-python = ">=3.8"
+dependencies = [
+    "openai",
+    "google-genai",
+    "python-dotenv",
+    "tqdm",
+    "tiktoken",
+    "requests",
+    "beautifulsoup4",
+    "playwright",
+    "nest_asyncio",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "pytest-asyncio",
+    "ipykernel",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}

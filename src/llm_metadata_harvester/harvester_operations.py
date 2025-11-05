@@ -33,9 +33,13 @@ from llm_metadata_harvester.utils import (
     normalize_extracted_info,
     split_string_by_multi_markers,
 )
+from llm_metadata_harvester.webutils import extract_full_page_text
+from llm_metadata_harvester.utils import node_2_metadata, dump_meta_to_json
+from llm_metadata_harvester.checks import check_exist, check_repeat_prompt
 from collections import defaultdict
 from llm_metadata_harvester.cheatsheet import CHEATSHEETS
 from llm_metadata_harvester.prompt import PROMPTS
+from llm_metadata_harvester.standards import LTER_LIFE_STANDARD
 from typing import Union, Tuple
 
 import tiktoken
@@ -465,3 +469,71 @@ def _post_processing_records(all_records: list[str],
             continue
 
     return maybe_nodes, final_nodes
+
+async def metadata_harvest(
+        model_name: str,
+        url: str,
+        metadata_standard: dict = LTER_LIFE_STANDARD,
+        dump_format: str = "none",
+        allow_retrying: bool = False,
+    ) -> dict:
+    """
+    Harvest metadata wrapper function.
+    First extract full text from URL, then extract entities using LLM, finally convert nodes
+    to metadata dictionary. If allow_retrying is True, perform checks and retry extraction
+    for missing fields. A hile loop is used to continue retrying until all fields are extracted.
+    If dump_format is specified, dump metadata to file.
+    """
+    if dump_format not in ["json", "yaml", "none"]:
+        raise ValueError("dump_format must be one of 'json', 'yaml', or 'none'")
+
+    full_text = await extract_full_page_text(url)
+    llm = LLMClient(model_name=model_name,
+                    temperature=0.0)
+
+    clean_nodes = extract_entities(
+        text=full_text,
+        meta_field_dict=metadata_standard,
+        llm=llm
+    )
+
+    metadata = node_2_metadata(clean_nodes)
+
+    if allow_retrying:
+        while True:
+            check_exist_results = check_exist(
+                extracted_metadata=metadata,
+                raw_input=full_text,
+                threshold=0.8
+            )
+            check_repeat_results = check_repeat_prompt(
+                extracted_metadata=metadata,
+                metadata_definition=metadata_standard,
+                threshold=0.8
+            )
+            missing_fields = [
+                field for field in metadata_standard.keys() if check_exist_results.get(field) is False or check_repeat_results.get(field) is True
+            ]
+
+            if missing_fields:
+                logger.info(f"Retrying extraction for missing fields: {missing_fields}")
+                refined_meta_field_dict = {field: metadata_standard[field] for field in missing_fields}
+                refined_nodes = extract_entities(
+                    text=full_text,
+                    meta_field_dict=refined_meta_field_dict,
+                    llm=llm
+                )
+                refined_metadata = node_2_metadata(refined_nodes)
+                # Update original metadata with refined results
+                for field in missing_fields:
+                    if field in refined_metadata:
+                        metadata[field] = refined_metadata[field]
+            else:
+                break
+
+    if dump_format == "json":
+        dump_meta_to_json(metadata, "extracted_metadata.json")
+    elif dump_format == "yaml":
+        dump_meta_to_json(metadata, "extracted_metadata.yaml", as_yaml=True)
+
+    return metadata

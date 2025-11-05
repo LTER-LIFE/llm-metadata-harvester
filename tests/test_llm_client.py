@@ -39,7 +39,7 @@ class TestLLMClient:
     
     def test_init_unsupported_model(self):
         """Test initialization with unsupported model"""
-        with pytest.raises(ValueError, match="Unsupported model: claude-3"):
+        with pytest.raises(ValueError, match="Unsupported LLM: claude-3"):
             LLMClient("claude-3")
     
     @patch('llm_metadata_harvester.llm_client.genai', None)
