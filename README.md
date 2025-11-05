@@ -20,7 +20,7 @@ Our methods are described in more detail in [our paper](https://doi.org/10.1007/
 
 ## Getting started:
 
-Please see the installation instructions below. For quickly getting started, see the [`data-field-filling.ipynb`](data-field-filling.ipynb) notebook. Alternatively, for a more detailed tutorial, please see our [Colab notebook tutorial](https://colab.research.google.com/drive/1N_lyPtHZucy6xu9msFfKk3dPtz3Z_Ife).
+Please see the installation instructions below. For quickly getting started, see the [`data-field-filling.ipynb`](examples/data-field-filling.ipynb) notebook. Alternatively, for a more detailed tutorial, please see our [Colab notebook tutorial](https://colab.research.google.com/drive/1N_lyPtHZucy6xu9msFfKk3dPtz3Z_Ife).
 
 ---
 
@@ -42,10 +42,10 @@ Please see the installation instructions below. For quickly getting started, see
 - Python 3.9 or higher
 - An API key for either [OpenAI](https://platform.openai.com/) or [Google Gemini](https://aistudio.google.com/) (see [API Key Setup](#api-key-setup) below)
 
-### Install from GitHub
+### Install from Pypi
 
 ```shell
-pip install git+https://github.com/LTER-LIFE/llm-metadata-harvester.git
+pip install llm-metadata-harvester
 ```
 
 ### Install for Development
@@ -98,6 +98,37 @@ To verify the installation worked correctly:
 import llm_metadata_harvester
 print("Installation successful!")
 ```
+
+## Usage: Harvesting Metadata from a Dataset Landing Page
+
+After installation and API key setup, you can use the wrapper function `metadata_harvest` to harvest metadata from a dataset landing page.
+
+### Python usage (async)
+
+```python
+import asyncio
+from llm_metadata_harvester.harvester_operations import metadata_harvest
+
+url = "https://example.com/dataset-page"
+model_name = "gpt-4o-mini"  # or a Gemini model name
+
+metadata = asyncio.run(
+    metadata_harvest(
+        model_name=model_name,
+        url=url,
+        # Optional parameters:
+        # dump_format="json",           # one of: "none" (default), "json", "yaml"
+        # allow_retrying=True            # retry to fill missing fields
+    )
+)
+
+print(metadata)
+```
+
+Notes:
+- Set your API key in the environment before running (see API Key Setup). The client reads `OPENAI_API_KEY` for OpenAI or `GEMINI_API_KEY` for Gemini.
+- `model_name` must be a valid model for your chosen provider.
+- If `dump_format` is set to `"json"` or `"yaml"`, the extracted metadata will be written to a file in the current directory.
 
 ## Example
 
