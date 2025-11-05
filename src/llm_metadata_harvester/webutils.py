@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from xml.etree import ElementTree as ET
 
 import asyncio
-from playwright.async_api import async_playwright
 
 
 def readWebContent(url: str) -> BeautifulSoup:
@@ -38,11 +37,21 @@ def downloadAndParseXML(url):
     return xml_str, root
 
 async def extract_full_page_text(url: str) -> str:
+    """
+    Asynchronously extracts all visible text content from a web page.
+
+    This function uses Playwright to launch a headless Chromium browser, navigate
+    to the specified URL, scrolls to the bottom of the page to ensure lazy-loaded
+    content is displayed, and then retrieves all inner text from the page's body.
+
+    :param url: The URL of the webpage to read.
+    """
+    from playwright.async_api import async_playwright
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
 
-        
         await page.goto(url, wait_until='networkidle')
 
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")

@@ -6,3 +6,8 @@ __pycache__/
 keys.env
 src/.env
 *.egg-info/
+
+build/*
+dist/*
+output_example.txt
+webpages/*
