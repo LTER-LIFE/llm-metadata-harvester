@@ -1,0 +1,646 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>llm_metadata_harvester.harvester_operations &mdash; LLM metadata harvester 0.1 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2709fde1"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            LLM metadata harvester
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">LLM metadata harvester</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">llm_metadata_harvester.harvester_operations</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for llm_metadata_harvester.harvester_operations</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The code in this file are partally copied or based on lightRAG project -&gt;</span>
+<span class="sd">https://github.com/HKUDS/LightRAG?</span>
+
+<span class="sd">Following the  MIT License:</span>
+
+<span class="sd">Copyright (c) 2025 LightRAG Team</span>
+
+<span class="sd">Permission is hereby granted, free of charge, to any person obtaining a copy</span>
+<span class="sd">of this software and associated documentation files (the &quot;Software&quot;), to deal</span>
+<span class="sd">in the Software without restriction, including without limitation the rights</span>
+<span class="sd">to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span>
+<span class="sd">copies of the Software, and to permit persons to whom the Software is</span>
+<span class="sd">furnished to do so, subject to the following conditions:</span>
+
+<span class="sd">The above copyright notice and this permission notice shall be included in all</span>
+<span class="sd">copies or substantial portions of the Software.</span>
+
+<span class="sd">THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="sd">IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="sd">FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="sd">AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="sd">LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="sd">OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="sd">SOFTWARE.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">llm_metadata_harvester.utils</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+    <span class="n">logger</span><span class="p">,</span>
+    <span class="n">clean_str</span><span class="p">,</span>
+    <span class="n">compute_mdhash_id</span><span class="p">,</span>
+    <span class="n">is_float_regex</span><span class="p">,</span>
+    <span class="n">normalize_extracted_info</span><span class="p">,</span>
+    <span class="n">split_string_by_multi_markers</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">llm_metadata_harvester.webutils</span><span class="w"> </span><span class="kn">import</span> <span class="n">extract_full_page_text</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">llm_metadata_harvester.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">node_2_metadata</span><span class="p">,</span> <span class="n">dump_meta_to_json</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">llm_metadata_harvester.checks</span><span class="w"> </span><span class="kn">import</span> <span class="n">check_exist</span><span class="p">,</span> <span class="n">check_repeat_prompt</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">defaultdict</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">llm_metadata_harvester.cheatsheet</span><span class="w"> </span><span class="kn">import</span> <span class="n">CHEATSHEETS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">llm_metadata_harvester.prompt</span><span class="w"> </span><span class="kn">import</span> <span class="n">PROMPTS</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">llm_metadata_harvester.standards</span><span class="w"> </span><span class="kn">import</span> <span class="n">LTER_LIFE_STANDARD</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Tuple</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">tiktoken</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">functools</span><span class="w"> </span><span class="kn">import</span> <span class="n">wraps</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">llm_metadata_harvester.llm_client</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMClient</span>
+
+
+<div class="viewcode-block" id="chunk_text">
+<a class="viewcode-back" href="../../api/llm_metadata_harvester.html#llm_metadata_harvester.harvester_operations.chunk_text">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">chunk_text</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+               <span class="n">llm</span><span class="p">:</span> <span class="n">LLMClient</span><span class="p">,</span>
+               <span class="n">max_tokens</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">6000</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Split text into chunks that fit within token limit&quot;&quot;&quot;</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="p">[]</span>
+    
+    <span class="k">if</span> <span class="n">llm</span><span class="o">.</span><span class="n">provider</span> <span class="o">==</span> <span class="s2">&quot;openai&quot;</span><span class="p">:</span>
+        <span class="n">encoder</span> <span class="o">=</span> <span class="n">tiktoken</span><span class="o">.</span><span class="n">encoding_for_model</span><span class="p">(</span><span class="n">llm</span><span class="o">.</span><span class="n">model</span><span class="p">)</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+        
+        <span class="n">current_chunk</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">current_length</span> <span class="o">=</span> <span class="mi">0</span>
+        
+        <span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">current_length</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&gt;</span> <span class="n">max_tokens</span><span class="p">:</span>
+                <span class="c1"># Convert chunk back to text</span>
+                <span class="n">chunk_text</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">current_chunk</span><span class="p">)</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk_text</span><span class="p">)</span>
+                <span class="n">current_chunk</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">current_length</span> <span class="o">=</span> <span class="mi">0</span>
+            
+            <span class="n">current_chunk</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+            <span class="n">current_length</span> <span class="o">+=</span> <span class="mi">1</span>
+        
+        <span class="k">if</span> <span class="n">current_chunk</span><span class="p">:</span>
+            <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">encoder</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">current_chunk</span><span class="p">))</span>
+    
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># For non-OpenAI models, use character-based chunking</span>
+        <span class="c1"># Assuming average of 4 characters per token</span>
+        <span class="n">char_limit</span> <span class="o">=</span> <span class="n">max_tokens</span> <span class="o">*</span> <span class="mi">4</span>
+        
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">),</span> <span class="n">char_limit</span><span class="p">):</span>
+            <span class="n">chunk</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span> <span class="o">+</span> <span class="n">char_limit</span><span class="p">]</span>
+            <span class="c1"># Try to break at sentence boundary</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="n">char_limit</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+                <span class="n">last_period</span> <span class="o">=</span> <span class="n">chunk</span><span class="o">.</span><span class="n">rfind</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">last_period</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">[:</span><span class="n">last_period</span> <span class="o">+</span> <span class="mi">1</span><span class="p">])</span>
+                    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">last_period</span> <span class="o">+</span> <span class="mi">1</span><span class="p">:]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">chunks</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">chunks</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_nightly_entity_template</span><span class="p">(</span><span class="n">meta_field_dict</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">line_template</span> <span class="o">=</span> <span class="s1">&#39;(&quot;entity&quot;</span><span class="si">{tuple_delimiter}</span><span class="s1">&quot;&lt;Nightly Entity Name&gt;&quot;</span><span class="si">{tuple_delimiter}</span><span class="s1">&quot;</span><span class="si">{field_name}</span><span class="s1">&quot;</span><span class="si">{tuple_delimiter}</span><span class="s1">&quot;&lt;Nightly Inference&gt;&quot;)</span><span class="si">{record_delimiter}</span><span class="s1">&#39;</span>
+    <span class="n">template</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">field_name</span> <span class="ow">in</span> <span class="n">meta_field_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">template</span> <span class="o">+=</span> <span class="n">line_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+            <span class="n">record_delimiter</span><span class="o">=</span><span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_RECORD_DELIMITER&quot;</span><span class="p">],</span>
+            <span class="n">tuple_delimiter</span><span class="o">=</span><span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_TUPLE_DELIMITER&quot;</span><span class="p">],</span>
+            <span class="n">field_name</span><span class="o">=</span><span class="n">field_name</span><span class="p">,</span>
+        <span class="p">)</span>
+    <span class="k">return</span> <span class="n">template</span>
+
+
+
+<div class="viewcode-block" id="extract_entities">
+<a class="viewcode-back" href="../../api/llm_metadata_harvester.html#llm_metadata_harvester.harvester_operations.extract_entities">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">extract_entities</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                     <span class="n">meta_field_dict</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">llm</span><span class="p">:</span> <span class="n">LLMClient</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+                     <span class="n">source_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                     <span class="n">return_initial_result</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="nb">dict</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract entities and relationships from text using LLM.</span>
+<span class="sd">    Args:</span>
+<span class="sd">        text (str): The input text to process.</span>
+<span class="sd">        meta_field_dict (dict): Dictionary of metadata fields to extract.</span>
+<span class="sd">        llm (LLMClient): The LLM client to use for entity extraction.</span>
+<span class="sd">        source_url (str): Optional URL for the source of the text.</span>
+<span class="sd">        return_initial_result (bool): If True, return both initial and cleaned nodes.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Split text into chunks</span>
+    <span class="n">chunks</span> <span class="o">=</span> <span class="n">chunk_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">llm</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">4000</span><span class="p">)</span>  <span class="c1"># Leave room for completion</span>
+    <span class="n">entity_types</span> <span class="o">=</span> <span class="n">meta_field_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="n">nightly_entities_prompt</span> <span class="o">=</span> <span class="n">_get_nightly_entity_template</span><span class="p">(</span><span class="n">meta_field_dict</span><span class="p">)</span>
+
+    <span class="n">all_records</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">special_interest</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">field_name</span><span class="p">,</span> <span class="n">field_value</span> <span class="ow">in</span> <span class="n">meta_field_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">special_interest</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">field_name</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">field_value</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+    
+    <span class="c1"># Process each chunk</span>
+    <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunks</span><span class="p">:</span>
+        <span class="n">chunk_index</span> <span class="o">=</span> <span class="n">chunks</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">chunk</span><span class="p">)</span>
+
+        <span class="n">formatted_prompt</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;language&quot;</span><span class="p">:</span> <span class="s2">&quot;English&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;tuple_delimiter&quot;</span><span class="p">:</span> <span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_TUPLE_DELIMITER&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;record_delimiter&quot;</span><span class="p">:</span> <span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_RECORD_DELIMITER&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;completion_delimiter&quot;</span><span class="p">:</span> <span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_COMPLETION_DELIMITER&quot;</span><span class="p">],</span>
+            <span class="s2">&quot;entity_types&quot;</span><span class="p">:</span> <span class="n">entity_types</span><span class="p">,</span>
+            <span class="s2">&quot;special_interest&quot;</span><span class="p">:</span> <span class="n">special_interest</span><span class="p">,</span>
+            <span class="s2">&quot;nightly_entities&quot;</span><span class="p">:</span> <span class="n">nightly_entities_prompt</span><span class="p">,</span>
+            <span class="s2">&quot;input_text&quot;</span><span class="p">:</span> <span class="n">chunk</span>
+        <span class="p">}</span>
+        <span class="n">prompt_text</span> <span class="o">=</span> <span class="n">_format_prompt</span><span class="p">(</span><span class="n">formatted_prompt</span><span class="p">)</span>
+        <span class="n">messages</span><span class="o">=</span><span class="p">[</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;You are an AI trained to extract entities (meta data fields) and relationships from text.&quot;</span>
+                    <span class="p">},</span>
+                    <span class="p">{</span>
+                        <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+                        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">prompt_text</span>
+            <span class="p">}</span>
+        <span class="p">]</span>
+
+        <span class="c1"># Use llm client to get response</span>
+        <span class="n">response_text</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+
+        <span class="c1"># Process the chunk results</span>
+        <span class="n">records</span> <span class="o">=</span> <span class="n">_process_extraction_result</span><span class="p">(</span>
+            <span class="n">response_text</span><span class="p">,</span>
+            <span class="n">chunk_key</span><span class="o">=</span><span class="n">compute_mdhash_id</span><span class="p">(</span><span class="n">chunk</span><span class="p">),</span>
+            <span class="n">file_path</span><span class="o">=</span><span class="s2">&quot;unknown_source&quot;</span>
+        <span class="p">)</span>
+        <span class="n">all_records</span> <span class="o">+=</span> <span class="n">records</span>
+    
+    <span class="n">source</span> <span class="o">=</span> <span class="n">source_url</span> <span class="k">if</span> <span class="n">source_url</span> <span class="k">else</span> <span class="s2">&quot;unknown_source&quot;</span>
+    
+    <span class="n">initial_nodes</span><span class="p">,</span> <span class="n">cleaned_nodes</span> <span class="o">=</span> <span class="n">_post_processing_records</span><span class="p">(</span>
+        <span class="n">all_records</span><span class="p">,</span>
+        <span class="n">chunk_key</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;chunk_</span><span class="si">{</span><span class="n">chunk_index</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="n">llm</span><span class="o">=</span><span class="n">llm</span><span class="p">,</span>
+        <span class="n">file_path</span><span class="o">=</span><span class="n">source</span>
+    <span class="p">)</span>
+    <span class="k">if</span> <span class="n">return_initial_result</span><span class="p">:</span>
+        <span class="c1"># Return both initial and cleaned nodes</span>
+        <span class="k">return</span> <span class="n">initial_nodes</span><span class="p">,</span> <span class="n">cleaned_nodes</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">cleaned_nodes</span></div>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_format_prompt</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="c1"># Format the prompt template with the provided parameters</span>
+    <span class="n">prompt_template</span> <span class="o">=</span> <span class="n">CHEATSHEETS</span><span class="p">[</span><span class="s2">&quot;fill_nightly&quot;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">prompt_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="o">**</span><span class="n">params</span><span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_post_processed_entity_extraction</span><span class="p">(</span>
+    <span class="n">record_attributes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">chunk_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;unknown_source&quot;</span><span class="p">,</span>
+<span class="p">):</span> 
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Handle the extraction of a single entity from the record attributes.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        record_attributes (list[str]): The attributes of the record to process</span>
+<span class="sd">        chunk_key (str): The key for the chunk being processed</span>
+<span class="sd">        file_path (str): The file path for citation</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary containing the extracted entity information, or None if extraction fails</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">3</span> <span class="ow">or</span> <span class="n">record_attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;&quot;entity&quot;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Clean and validate entity name</span>
+    <span class="n">entity_name</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">entity_name</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Entity extraction error: empty entity name in: </span><span class="si">{</span><span class="n">record_attributes</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Normalize entity name</span>
+    <span class="n">entity_name</span> <span class="o">=</span> <span class="n">normalize_extracted_info</span><span class="p">(</span><span class="n">entity_name</span><span class="p">,</span> <span class="n">is_entity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Clean and validate entity type</span>
+    <span class="n">entity_value</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">entity_value</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="n">entity_value</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;(&quot;&#39;</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Entity extraction error: invalid entity type in: </span><span class="si">{</span><span class="n">record_attributes</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">entity_name</span><span class="o">=</span><span class="n">entity_name</span><span class="p">,</span>
+        <span class="n">entity_value</span><span class="o">=</span><span class="n">entity_value</span><span class="p">,</span>
+        <span class="n">source_id</span><span class="o">=</span><span class="n">chunk_key</span><span class="p">,</span>
+        <span class="n">file_path</span><span class="o">=</span><span class="n">file_path</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_single_entity_extraction</span><span class="p">(</span>
+    <span class="n">record_attributes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">chunk_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;unknown_source&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span> <span class="ow">or</span> <span class="n">record_attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;&quot;entity&quot;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Clean and validate entity name</span>
+    <span class="n">entity_name</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">entity_name</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Entity extraction error: empty entity name in: </span><span class="si">{</span><span class="n">record_attributes</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Normalize entity name</span>
+    <span class="n">entity_name</span> <span class="o">=</span> <span class="n">normalize_extracted_info</span><span class="p">(</span><span class="n">entity_name</span><span class="p">,</span> <span class="n">is_entity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1"># Clean and validate entity type</span>
+    <span class="n">entity_type</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">entity_type</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="n">entity_type</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;(&quot;&#39;</span><span class="p">):</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Entity extraction error: invalid entity type in: </span><span class="si">{</span><span class="n">record_attributes</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="c1"># Clean and validate description</span>
+    <span class="n">entity_description</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">entity_description</span> <span class="o">=</span> <span class="n">normalize_extracted_info</span><span class="p">(</span><span class="n">entity_description</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">entity_description</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Entity extraction error: empty description for entity &#39;</span><span class="si">{</span><span class="n">entity_name</span><span class="si">}</span><span class="s2">&#39; of type &#39;</span><span class="si">{</span><span class="n">entity_type</span><span class="si">}</span><span class="s2">&#39;&quot;</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">entity_name</span><span class="o">=</span><span class="n">entity_name</span><span class="p">,</span>
+        <span class="n">entity_type</span><span class="o">=</span><span class="n">entity_type</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="n">entity_description</span><span class="p">,</span>
+        <span class="n">source_id</span><span class="o">=</span><span class="n">chunk_key</span><span class="p">,</span>
+        <span class="n">file_path</span><span class="o">=</span><span class="n">file_path</span><span class="p">,</span>
+    <span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_handle_single_relationship_extraction</span><span class="p">(</span>
+    <span class="n">record_attributes</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+    <span class="n">chunk_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;unknown_source&quot;</span><span class="p">,</span>
+<span class="p">):</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">5</span> <span class="ow">or</span> <span class="n">record_attributes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;&quot;relationship&quot;&#39;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span>
+    <span class="c1"># add this record as edge</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+
+    <span class="c1"># Normalize source and target entity names</span>
+    <span class="n">source</span> <span class="o">=</span> <span class="n">normalize_extracted_info</span><span class="p">(</span><span class="n">source</span><span class="p">,</span> <span class="n">is_entity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">normalize_extracted_info</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">is_entity</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="n">edge_description</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="mi">3</span><span class="p">])</span>
+    <span class="n">edge_description</span> <span class="o">=</span> <span class="n">normalize_extracted_info</span><span class="p">(</span><span class="n">edge_description</span><span class="p">)</span>
+
+    <span class="n">edge_keywords</span> <span class="o">=</span> <span class="n">clean_str</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="mi">4</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">)</span>
+    <span class="n">edge_source_id</span> <span class="o">=</span> <span class="n">chunk_key</span>
+    <span class="n">weight</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="nb">float</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s2">&quot;&#39;&quot;</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">is_float_regex</span><span class="p">(</span><span class="n">record_attributes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">else</span> <span class="mf">1.0</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">src_id</span><span class="o">=</span><span class="n">source</span><span class="p">,</span>
+        <span class="n">tgt_id</span><span class="o">=</span><span class="n">target</span><span class="p">,</span>
+        <span class="n">weight</span><span class="o">=</span><span class="n">weight</span><span class="p">,</span>
+        <span class="n">description</span><span class="o">=</span><span class="n">edge_description</span><span class="p">,</span>
+        <span class="n">keywords</span><span class="o">=</span><span class="n">edge_keywords</span><span class="p">,</span>
+        <span class="n">source_id</span><span class="o">=</span><span class="n">edge_source_id</span><span class="p">,</span>
+        <span class="n">file_path</span><span class="o">=</span><span class="n">file_path</span><span class="p">,</span>
+    <span class="p">)</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_post_process_single_record</span><span class="p">(</span><span class="n">record</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">context_base</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Process a single record by cleaning and extracting its contents.</span>
+<span class="sd">    </span>
+<span class="sd">    Args:</span>
+<span class="sd">        record (str): The record string to process</span>
+<span class="sd">        context_base (dict): Dictionary containing delimiter configuration</span>
+<span class="sd">        </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (processed_record, record_attributes) where:</span>
+<span class="sd">            - processed_record is the cleaned record string</span>
+<span class="sd">            - record_attributes is a list of attributes split by delimiter</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Add parentheses if they don&#39;t exist</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">record</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">):</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">record</span><span class="si">}</span><span class="s1">)&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">record</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">):</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">record</span><span class="si">}</span><span class="s1">)&#39;</span>
+        
+    <span class="c1"># Extract content between parentheses</span>
+    <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\((.*)\)&quot;</span><span class="p">,</span> <span class="n">record</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">match</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[]</span>
+        
+    <span class="n">processed_record</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">record_attributes</span> <span class="o">=</span> <span class="n">split_string_by_multi_markers</span><span class="p">(</span>
+        <span class="n">processed_record</span><span class="p">,</span> 
+        <span class="p">[</span><span class="n">context_base</span><span class="p">[</span><span class="s2">&quot;tuple_delimiter&quot;</span><span class="p">]]</span>
+    <span class="p">)</span>
+    
+    <span class="k">return</span> <span class="n">processed_record</span><span class="p">,</span> <span class="n">record_attributes</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_process_extraction_result</span><span class="p">(</span>
+        <span class="n">result</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">chunk_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;unknown_source&quot;</span>
+    <span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a single extraction result (either initial or gleaning)</span>
+<span class="sd">        Args:</span>
+<span class="sd">            result (str): The extraction result to process</span>
+<span class="sd">            chunk_key (str): The chunk key for source tracking</span>
+<span class="sd">            file_path (str): The file path for citation</span>
+<span class="sd">        Returns:</span>
+<span class="sd">            tuple: (nodes_dict, edges_dict) containing the extracted entities and relationships</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">context_base</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+            <span class="n">tuple_delimiter</span><span class="o">=</span><span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_TUPLE_DELIMITER&quot;</span><span class="p">],</span>
+            <span class="n">record_delimiter</span><span class="o">=</span><span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_RECORD_DELIMITER&quot;</span><span class="p">],</span>
+            <span class="n">completion_delimiter</span><span class="o">=</span><span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_COMPLETION_DELIMITER&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="n">maybe_nodes</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+        <span class="n">maybe_edges</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+        <span class="n">records</span> <span class="o">=</span> <span class="n">split_string_by_multi_markers</span><span class="p">(</span>
+            <span class="n">result</span><span class="p">,</span>
+            <span class="p">[</span><span class="n">context_base</span><span class="p">[</span><span class="s2">&quot;record_delimiter&quot;</span><span class="p">],</span> <span class="n">context_base</span><span class="p">[</span><span class="s2">&quot;completion_delimiter&quot;</span><span class="p">],</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">],</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">records</span>
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_post_processing_records</span><span class="p">(</span><span class="n">all_records</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+                             <span class="n">chunk_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+                             <span class="n">llm</span><span class="p">:</span> <span class="n">LLMClient</span><span class="p">,</span>
+                             <span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;unknown_source&quot;</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Post-process records to extract entities and relationships.</span>
+<span class="sd">    </span>
+<span class="sd">    This function processes the extracted records, cleaning them and extracting</span>
+<span class="sd">    entities and relationships based on predefined rules.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns:</span>
+<span class="sd">        tuple: (maybe_nodes, maybe_edges) where:</span>
+<span class="sd">            - maybe_nodes is a dictionary of extracted entities</span>
+<span class="sd">            - maybe_edges is a dictionary of extracted relationships</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">context_base</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span>
+        <span class="n">tuple_delimiter</span><span class="o">=</span><span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_TUPLE_DELIMITER&quot;</span><span class="p">],</span>
+        <span class="n">record_delimiter</span><span class="o">=</span><span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_RECORD_DELIMITER&quot;</span><span class="p">],</span>
+        <span class="n">completion_delimiter</span><span class="o">=</span><span class="n">PROMPTS</span><span class="p">[</span><span class="s2">&quot;DEFAULT_COMPLETION_DELIMITER&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="n">maybe_nodes</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="n">merged_records</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">all_records</span><span class="p">:</span>
+        <span class="n">processed_record</span><span class="p">,</span> <span class="n">record_attributes</span> <span class="o">=</span> <span class="n">_post_process_single_record</span><span class="p">(</span><span class="n">record</span><span class="p">,</span> <span class="n">context_base</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">processed_record</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="n">if_entities</span> <span class="o">=</span> <span class="n">_handle_single_entity_extraction</span><span class="p">(</span>
+            <span class="n">record_attributes</span><span class="p">,</span> <span class="n">chunk_key</span><span class="o">=</span><span class="s2">&quot;unknown_chunk&quot;</span><span class="p">,</span> <span class="n">file_path</span><span class="o">=</span><span class="s2">&quot;unknown_source&quot;</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">if_entities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">entity_type</span> <span class="o">=</span> <span class="n">if_entities</span><span class="p">[</span><span class="s2">&quot;entity_type&quot;</span><span class="p">]</span>
+            <span class="n">entity_description</span> <span class="o">=</span> <span class="n">if_entities</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+            <span class="n">entity_name</span> <span class="o">=</span> <span class="n">if_entities</span><span class="p">[</span><span class="s2">&quot;entity_name&quot;</span><span class="p">]</span>
+            <span class="n">maybe_nodes</span><span class="p">[</span><span class="n">entity_type</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">if_entities</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+    <span class="k">for</span> <span class="n">entity_type</span><span class="p">,</span> <span class="n">entities</span> <span class="ow">in</span> <span class="n">maybe_nodes</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">entity_type</span> <span class="o">=</span> <span class="n">entity_type</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">)</span>
+        <span class="n">entity_description</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">entity</span> <span class="ow">in</span> <span class="n">entities</span><span class="p">:</span>
+            <span class="n">entity_description</span> <span class="o">+=</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;entity_name&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;. &quot;</span> <span class="o">+</span> <span class="n">entity</span><span class="p">[</span><span class="s2">&quot;description&quot;</span><span class="p">]</span>
+        
+        <span class="n">merged_records</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">&quot;(</span><span class="se">\&quot;</span><span class="s2">entity</span><span class="se">\&quot;</span><span class="si">{</span><span class="n">context_base</span><span class="p">[</span><span class="s1">&#39;tuple_delimiter&#39;</span><span class="p">]</span><span class="si">}{</span><span class="n">entity_type</span><span class="si">}{</span><span class="n">context_base</span><span class="p">[</span><span class="s1">&#39;tuple_delimiter&#39;</span><span class="p">]</span><span class="si">}{</span><span class="n">entity_description</span><span class="si">}</span><span class="s2">)</span><span class="si">{</span><span class="n">context_base</span><span class="p">[</span><span class="s1">&#39;record_delimiter&#39;</span><span class="p">]</span><span class="si">}</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+    <span class="n">messages</span><span class="o">=</span><span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;system&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;You are an AI trained to extract entities (meta data fields) and relationships from text.&quot;</span>
+        <span class="p">},</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;role&quot;</span><span class="p">:</span> <span class="s2">&quot;user&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="n">CHEATSHEETS</span><span class="p">[</span><span class="s2">&quot;post_processing&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
+                <span class="n">language</span><span class="o">=</span><span class="s2">&quot;English&quot;</span><span class="p">,</span>
+                <span class="n">tuple_delimiter</span><span class="o">=</span><span class="n">context_base</span><span class="p">[</span><span class="s2">&quot;tuple_delimiter&quot;</span><span class="p">],</span>
+                <span class="n">record_delimiter</span><span class="o">=</span><span class="n">context_base</span><span class="p">[</span><span class="s2">&quot;record_delimiter&quot;</span><span class="p">],</span>
+                <span class="n">completion_delimiter</span><span class="o">=</span><span class="n">context_base</span><span class="p">[</span><span class="s2">&quot;record_delimiter&quot;</span><span class="p">],</span>
+                <span class="n">input_entities</span><span class="o">=</span><span class="n">merged_records</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">llm</span><span class="o">.</span><span class="n">chat</span><span class="p">(</span><span class="n">messages</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+    <span class="n">records</span> <span class="o">=</span> <span class="n">split_string_by_multi_markers</span><span class="p">(</span>
+        <span class="n">result</span><span class="p">,</span>
+        <span class="p">[</span><span class="n">context_base</span><span class="p">[</span><span class="s2">&quot;record_delimiter&quot;</span><span class="p">],</span> <span class="n">context_base</span><span class="p">[</span><span class="s2">&quot;completion_delimiter&quot;</span><span class="p">],</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">],</span>
+    <span class="p">)</span>
+
+    <span class="n">final_nodes</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">record</span> <span class="ow">in</span> <span class="n">records</span><span class="p">:</span>
+        <span class="c1"># Add parentheses if they don&#39;t exist</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">record</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">):</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;(</span><span class="si">{</span><span class="n">record</span><span class="si">}</span><span class="s1">)&#39;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">record</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">):</span>
+            <span class="n">record</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">record</span><span class="si">}</span><span class="s1">)&#39;</span>
+        <span class="n">record</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\((.*)\)&quot;</span><span class="p">,</span> <span class="n">record</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">record</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Record extraction error: invalid record format in: </span><span class="si">{</span><span class="n">record</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+            <span class="k">continue</span>
+    
+        <span class="n">record</span> <span class="o">=</span> <span class="n">record</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">record_attributes</span> <span class="o">=</span> <span class="n">split_string_by_multi_markers</span><span class="p">(</span>
+            <span class="n">record</span><span class="p">,</span> <span class="p">[</span><span class="n">context_base</span><span class="p">[</span><span class="s2">&quot;tuple_delimiter&quot;</span><span class="p">]]</span>
+        <span class="p">)</span>
+
+        <span class="n">if_entities</span> <span class="o">=</span> <span class="n">_handle_post_processed_entity_extraction</span><span class="p">(</span>
+            <span class="n">record_attributes</span><span class="p">,</span> <span class="n">chunk_key</span><span class="p">,</span> <span class="n">file_path</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">if_entities</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">final_nodes</span><span class="p">[</span><span class="n">if_entities</span><span class="p">[</span><span class="s2">&quot;entity_name&quot;</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">if_entities</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+    <span class="k">return</span> <span class="n">maybe_nodes</span><span class="p">,</span> <span class="n">final_nodes</span>
+
+<div class="viewcode-block" id="metadata_harvest">
+<a class="viewcode-back" href="../../api/llm_metadata_harvester.html#llm_metadata_harvester.harvester_operations.metadata_harvest">[docs]</a>
+<span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">metadata_harvest</span><span class="p">(</span>
+        <span class="n">model_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="n">metadata_standard</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">LTER_LIFE_STANDARD</span><span class="p">,</span>
+        <span class="n">dump_format</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+        <span class="n">allow_retrying</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Harvest metadata wrapper function.</span>
+<span class="sd">    First extract full text from URL, then extract entities using LLM, finally convert nodes</span>
+<span class="sd">    to metadata dictionary. If allow_retrying is True, perform checks and retry extraction</span>
+<span class="sd">    for missing fields. A hile loop is used to continue retrying until all fields are extracted.</span>
+<span class="sd">    If dump_format is specified, dump metadata to file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">dump_format</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s2">&quot;json&quot;</span><span class="p">,</span> <span class="s2">&quot;yaml&quot;</span><span class="p">,</span> <span class="s2">&quot;none&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;dump_format must be one of &#39;json&#39;, &#39;yaml&#39;, or &#39;none&#39;&quot;</span><span class="p">)</span>
+
+    <span class="n">full_text</span> <span class="o">=</span> <span class="k">await</span> <span class="n">extract_full_page_text</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
+    <span class="n">llm</span> <span class="o">=</span> <span class="n">LLMClient</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="n">model_name</span><span class="p">,</span>
+                    <span class="n">temperature</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+
+    <span class="n">clean_nodes</span> <span class="o">=</span> <span class="n">extract_entities</span><span class="p">(</span>
+        <span class="n">text</span><span class="o">=</span><span class="n">full_text</span><span class="p">,</span>
+        <span class="n">meta_field_dict</span><span class="o">=</span><span class="n">metadata_standard</span><span class="p">,</span>
+        <span class="n">llm</span><span class="o">=</span><span class="n">llm</span>
+    <span class="p">)</span>
+
+    <span class="n">metadata</span> <span class="o">=</span> <span class="n">node_2_metadata</span><span class="p">(</span><span class="n">clean_nodes</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">allow_retrying</span><span class="p">:</span>
+        <span class="k">while</span> <span class="kc">True</span><span class="p">:</span>
+            <span class="n">check_exist_results</span> <span class="o">=</span> <span class="n">check_exist</span><span class="p">(</span>
+                <span class="n">extracted_metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">,</span>
+                <span class="n">raw_input</span><span class="o">=</span><span class="n">full_text</span><span class="p">,</span>
+                <span class="n">threshold</span><span class="o">=</span><span class="mf">0.8</span>
+            <span class="p">)</span>
+            <span class="n">check_repeat_results</span> <span class="o">=</span> <span class="n">check_repeat_prompt</span><span class="p">(</span>
+                <span class="n">extracted_metadata</span><span class="o">=</span><span class="n">metadata</span><span class="p">,</span>
+                <span class="n">metadata_definition</span><span class="o">=</span><span class="n">metadata_standard</span><span class="p">,</span>
+                <span class="n">threshold</span><span class="o">=</span><span class="mf">0.8</span>
+            <span class="p">)</span>
+            <span class="n">missing_fields</span> <span class="o">=</span> <span class="p">[</span>
+                <span class="n">field</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">metadata_standard</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">check_exist_results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">False</span> <span class="ow">or</span> <span class="n">check_repeat_results</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">field</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">True</span>
+            <span class="p">]</span>
+
+            <span class="k">if</span> <span class="n">missing_fields</span><span class="p">:</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Retrying extraction for missing fields: </span><span class="si">{</span><span class="n">missing_fields</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+                <span class="n">refined_meta_field_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">field</span><span class="p">:</span> <span class="n">metadata_standard</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">missing_fields</span><span class="p">}</span>
+                <span class="n">refined_nodes</span> <span class="o">=</span> <span class="n">extract_entities</span><span class="p">(</span>
+                    <span class="n">text</span><span class="o">=</span><span class="n">full_text</span><span class="p">,</span>
+                    <span class="n">meta_field_dict</span><span class="o">=</span><span class="n">refined_meta_field_dict</span><span class="p">,</span>
+                    <span class="n">llm</span><span class="o">=</span><span class="n">llm</span>
+                <span class="p">)</span>
+                <span class="n">refined_metadata</span> <span class="o">=</span> <span class="n">node_2_metadata</span><span class="p">(</span><span class="n">refined_nodes</span><span class="p">)</span>
+                <span class="c1"># Update original metadata with refined results</span>
+                <span class="k">for</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">missing_fields</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">field</span> <span class="ow">in</span> <span class="n">refined_metadata</span><span class="p">:</span>
+                        <span class="n">metadata</span><span class="p">[</span><span class="n">field</span><span class="p">]</span> <span class="o">=</span> <span class="n">refined_metadata</span><span class="p">[</span><span class="n">field</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">break</span>
+
+    <span class="k">if</span> <span class="n">dump_format</span> <span class="o">==</span> <span class="s2">&quot;json&quot;</span><span class="p">:</span>
+        <span class="n">dump_meta_to_json</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="s2">&quot;extracted_metadata.json&quot;</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">dump_format</span> <span class="o">==</span> <span class="s2">&quot;yaml&quot;</span><span class="p">:</span>
+        <span class="n">dump_meta_to_json</span><span class="p">(</span><span class="n">metadata</span><span class="p">,</span> <span class="s2">&quot;extracted_metadata.yaml&quot;</span><span class="p">,</span> <span class="n">as_yaml</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">metadata</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Zehao Lu, Thijs van der Plas.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
