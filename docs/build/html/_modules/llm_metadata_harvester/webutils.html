@@ -71,7 +71,14 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">xml.etree</span><span class="w"> </span><span class="kn">import</span> <span class="n">ElementTree</span> <span class="k">as</span> <span class="n">ET</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">asyncio</span>
-<span class="kn">from</span><span class="w"> </span><span class="nn">playwright.async_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">async_playwright</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span><span class="w"> </span><span class="nn">playwright.async_api</span><span class="w"> </span><span class="kn">import</span> <span class="n">async_playwright</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">raise</span> <span class="ne">ImportError</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;</span>
+<span class="s2">        Playwright is not installed. Please follow the</span>
+<span class="s2">        installation instructions at</span>
+<span class="s2">        https://playwright.dev/python/docs/intro to install it.&quot;&quot;&quot;</span><span class="p">)</span>
+
 
 
 <div class="viewcode-block" id="readWebContent">
@@ -79,7 +86,7 @@
 <span class="k">def</span><span class="w"> </span><span class="nf">readWebContent</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BeautifulSoup</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Reads the content of a webpage and returns a BeautifulSoup object.</span>
-<span class="sd">    :param url: The URL of the webpage to read.</span>
+<span class="sd">    Param: url(str): The URL of the webpage to read.</span>
 <span class="sd">    :return: A BeautifulSoup object containing the parsed HTML content.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">)</span>
@@ -96,9 +103,26 @@
 <a class="viewcode-back" href="../../api/llm_metadata_harvester.html#llm_metadata_harvester.webutils.downloadAndParseXML">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">downloadAndParseXML</span><span class="p">(</span><span class="n">url</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Downloads metadata XML from the Wadden data service and parses it.</span>
-<span class="sd">    Params: url (str): The URL of the XML to download.</span>
-<span class="sd">    Returns: tuple: (xml_str, root) where xml_str is the raw XML text and root is the parsed ElementTree root</span>
+<span class="sd">    Downloads metadata XML from data portal and parses it.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        The URL of the XML to download.</span>
+<span class="sd">    </span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    xml_str : str</span>
+<span class="sd">        The raw XML text retrieved from the URL.</span>
+<span class="sd">    root : xml.etree.ElementTree.Element</span>
+<span class="sd">        The parsed ElementTree root of the XML.</span>
+<span class="sd">    </span>
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    requests.RequestException</span>
+<span class="sd">        If there is an issue with the HTTP request.</span>
+<span class="sd">    xml.etree.ElementTree.ParseError</span>
+<span class="sd">        If the XML cannot be parsed.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="c1"># Download the XML</span>
@@ -114,11 +138,36 @@
 <div class="viewcode-block" id="extract_full_page_text">
 <a class="viewcode-back" href="../../api/llm_metadata_harvester.html#llm_metadata_harvester.webutils.extract_full_page_text">[docs]</a>
 <span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">extract_full_page_text</span><span class="p">(</span><span class="n">url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Asynchronously extracts all visible text content from a web page.</span>
+
+<span class="sd">    This function uses Playwright to launch a headless Chromium browser, navigate</span>
+<span class="sd">    to the specified URL, scrolls to the bottom of the page to ensure lazy-loaded</span>
+<span class="sd">    content is displayed, and then retrieves all inner text from the page&#39;s body.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    url : str</span>
+<span class="sd">        The URL of the webpage to extract text from.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        The full visible text content extracted from the web page.</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ImportError</span>
+<span class="sd">        If Playwright is not installed.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; await extract_full_page_text(&quot;https://example.com&quot;)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">async</span> <span class="k">with</span> <span class="n">async_playwright</span><span class="p">()</span> <span class="k">as</span> <span class="n">p</span><span class="p">:</span>
         <span class="n">browser</span> <span class="o">=</span> <span class="k">await</span> <span class="n">p</span><span class="o">.</span><span class="n">chromium</span><span class="o">.</span><span class="n">launch</span><span class="p">(</span><span class="n">headless</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="n">page</span> <span class="o">=</span> <span class="k">await</span> <span class="n">browser</span><span class="o">.</span><span class="n">new_page</span><span class="p">()</span>
 
-        
         <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">goto</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">wait_until</span><span class="o">=</span><span class="s1">&#39;networkidle&#39;</span><span class="p">)</span>
 
         <span class="k">await</span> <span class="n">page</span><span class="o">.</span><span class="n">evaluate</span><span class="p">(</span><span class="s2">&quot;window.scrollTo(0, document.body.scrollHeight)&quot;</span><span class="p">)</span>

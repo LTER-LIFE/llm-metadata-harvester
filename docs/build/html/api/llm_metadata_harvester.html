@@ -411,16 +411,32 @@ retrieve result from cache; otherwise call LLM function and save result to cache
 <dt class="sig sig-object py" id="llm_metadata_harvester.webutils.readWebContent">
 <span class="sig-prename descclassname"><span class="pre">llm_metadata_harvester.webutils.</span></span><span class="sig-name descname"><span class="pre">readWebContent</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">BeautifulSoup</span></span></span><a class="reference internal" href="../_modules/llm_metadata_harvester/webutils.html#readWebContent"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#llm_metadata_harvester.webutils.readWebContent" title="Link to this definition"></a></dt>
 <dd><p>Reads the content of a webpage and returns a BeautifulSoup object.
-:param url: The URL of the webpage to read.
+Param: url(str): The URL of the webpage to read.
 :return: A BeautifulSoup object containing the parsed HTML content.</p>
 </dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="llm_metadata_harvester.webutils.downloadAndParseXML">
 <span class="sig-prename descclassname"><span class="pre">llm_metadata_harvester.webutils.</span></span><span class="sig-name descname"><span class="pre">downloadAndParseXML</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/llm_metadata_harvester/webutils.html#downloadAndParseXML"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#llm_metadata_harvester.webutils.downloadAndParseXML" title="Link to this definition"></a></dt>
-<dd><p>Downloads metadata XML from the Wadden data service and parses it.
-Params: url (str): The URL of the XML to download.
-Returns: tuple: (xml_str, root) where xml_str is the raw XML text and root is the parsed ElementTree root</p>
+<dd><p>Downloads metadata XML from data portal and parses it.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em>) – The URL of the XML to download.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><strong>xml_str</strong> (<em>str</em>) – The raw XML text retrieved from the URL.</p></li>
+<li><p><strong>root</strong> (<em>xml.etree.ElementTree.Element</em>) – The parsed ElementTree root of the XML.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>requests.RequestException</strong> – If there is an issue with the HTTP request.</p></li>
+<li><p><strong>xml.etree.ElementTree.ParseError</strong> – If the XML cannot be parsed.</p></li>
+</ul>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py function">
@@ -432,9 +448,22 @@ to the specified URL, scrolls to the bottom of the page to ensure lazy-loaded
 content is displayed, and then retrieves all inner text from the page’s body.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>url</strong> – The URL of the webpage to read.</p>
+<dd class="field-odd"><p><strong>url</strong> (<em>str</em>) – The URL of the webpage to extract text from.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The full visible text content extracted from the web page.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ImportError</strong> – If Playwright is not installed.</p>
 </dd>
 </dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">await</span> <span class="n">extract_full_page_text</span><span class="p">(</span><span class="s2">&quot;https://example.com&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
 </dd></dl>
 
 </section>

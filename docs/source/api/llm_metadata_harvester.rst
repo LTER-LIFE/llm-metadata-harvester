@@ -43,6 +43,7 @@ llm\_metadata\_harvester.harvester\_operations module
    :members:
    :show-inheritance:
    :undoc-members:
+   :no-value:
 
 llm\_metadata\_harvester.llm\_client module
 -------------------------------------------

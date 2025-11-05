@@ -1,30 +1,3 @@
-"""
-The code in this file are partally copied or based on lightRAG project ->
-https://github.com/HKUDS/LightRAG?
-
-Following the  MIT License:
-
-Copyright (c) 2025 LightRAG Team
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-"""
-
 from llm_metadata_harvester.utils import (
     logger,
     clean_str,
@@ -478,11 +451,40 @@ async def metadata_harvest(
         allow_retrying: bool = False,
     ) -> dict:
     """
-    Harvest metadata wrapper function.
-    First extract full text from URL, then extract entities using LLM, finally convert nodes
-    to metadata dictionary. If allow_retrying is True, perform checks and retry extraction
-    for missing fields. A hile loop is used to continue retrying until all fields are extracted.
-    If dump_format is specified, dump metadata to file.
+    Harvest metadata from a given URL using an LLM-based extraction pipeline.
+
+    This function extracts the full text from the specified URL, uses a language model to extract metadata entities,
+    and converts the results into a metadata dictionary according to the provided metadata standard. Optionally,
+    it can retry extraction for missing or incomplete fields until all required metadata is obtained. The extracted
+    metadata can be dumped to a file in JSON or YAML format.
+
+    Parameters
+    ----------
+    model_name : str
+        The name of the language model to use for entity extraction.
+    url : str
+        The URL of the page from which to harvest metadata.
+    metadata_standard : dict, optional
+        A dictionary defining the metadata fields and their descriptions (default is LTER_LIFE_STANDARD).
+    dump_format : str, optional
+        The format to dump the extracted metadata to a file. Must be one of 'json', 'yaml', or 'none' (default is 'none').
+    allow_retrying : bool, optional
+        If True, retries extraction for missing or incomplete metadata fields until all are obtained (default is False).
+
+    Returns
+    -------
+    dict
+        A dictionary containing the extracted metadata fields and their values.
+
+    Raises
+    ------
+    ValueError
+        If `dump_format` is not one of 'json', 'yaml', or 'none'.
+
+    Notes
+    -----
+    - The function uses a while loop to retry extraction for missing fields if `allow_retrying` is True.
+    - Metadata can be dumped to a file in JSON or YAML format if `dump_format` is specified.
     """
     if dump_format not in ["json", "yaml", "none"]:
         raise ValueError("dump_format must be one of 'json', 'yaml', or 'none'")

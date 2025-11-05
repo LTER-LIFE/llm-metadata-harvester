@@ -16,9 +16,20 @@ except ImportError:
 def readWebContent(url: str) -> BeautifulSoup:
     """
     Reads the content of a webpage and returns a BeautifulSoup object.
-    Param: url(str): The URL of the webpage to read.
-    :return: A BeautifulSoup object containing the parsed HTML content.
+    Parameters
+    ----------
+    url : str
+        The URL of the webpage to read.
+    Returns
+    -------
+    BeautifulSoup or None
+        A BeautifulSoup object containing the parsed HTML content if the request is successful, otherwise None.
+    Raises
+    ------
+    requests.exceptions.RequestException
+        If there is an issue making the HTTP request.
     """
+    
     response = requests.get(url)
     
     if response.status_code == 200:
