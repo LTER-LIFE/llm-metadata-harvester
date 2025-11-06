@@ -275,7 +275,10 @@ def dump_meta_to_json(file_path: str, meta: dict, as_yaml: bool = False):
     """
     Dump metadata to a JSON/YAML file, creating directories if necessary.
     """
-    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    dir_name = os.path.dirname(file_path)
+    if dir_name:
+        os.makedirs(dir_name, exist_ok=True)
+        
     if as_yaml:
         with open(file_path, "w", encoding="utf-8") as f:
             yaml.dump(meta, f, allow_unicode=True, sort_keys=False)

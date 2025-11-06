@@ -488,21 +488,28 @@ async def metadata_harvest(
     """
     if dump_format not in ["json", "yaml", "none"]:
         raise ValueError("dump_format must be one of 'json', 'yaml', or 'none'")
+    print("Extracting full page text...")
 
     full_text = await extract_full_page_text(url)
     llm = LLMClient(model_name=model_name,
                     temperature=0.0)
+    
+    print("Extracting entities from text...")
 
     clean_nodes = extract_entities(
         text=full_text,
         meta_field_dict=metadata_standard,
         llm=llm
     )
+    print("Converting extracted nodes to metadata...")
 
     metadata = node_2_metadata(clean_nodes)
 
     if allow_retrying:
-        while True:
+        max_try = 3
+
+        for attempt in range(max_try):
+            print(f"Retry attempt {attempt + 1} for missing fields...")
             check_exist_results = check_exist(
                 extracted_metadata=metadata,
                 raw_input=full_text,
@@ -514,7 +521,7 @@ async def metadata_harvest(
                 threshold=0.8
             )
             missing_fields = [
-                field for field in metadata_standard.keys() if check_exist_results.get(field) is False or check_repeat_results.get(field) is True
+                field for field in metadata_standard.keys() if (check_exist_results.get(field) is False or check_repeat_results.get(field) is True)
             ]
 
             if missing_fields:
@@ -534,8 +541,8 @@ async def metadata_harvest(
                 break
 
     if dump_format == "json":
-        dump_meta_to_json(metadata, "extracted_metadata.json")
+        dump_meta_to_json("extracted_metadata.json", metadata)
     elif dump_format == "yaml":
-        dump_meta_to_json(metadata, "extracted_metadata.yaml", as_yaml=True)
+        dump_meta_to_json("extracted_metadata.yaml", metadata, as_yaml=True)
 
     return metadata
