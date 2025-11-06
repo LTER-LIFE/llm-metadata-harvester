@@ -3,6 +3,7 @@
 ![Issues](https://img.shields.io/github/issues/LTER-LIFE/llm-metadata-harvester)
 ![GitHub Tag](https://img.shields.io/github/v/tag/LTER-LIFE/llm-metadata-harvester)
 [![Python package](https://github.com/LTER-LIFE/llm-metadata-harvester/actions/workflows/python-package.yml/badge.svg)](https://github.com/LTER-LIFE/llm-metadata-harvester/actions/workflows/python-package.yml)
+![Read the Docs](https://img.shields.io/readthedocs/llm-metadata-harvester)
 
 
 # Flexible metadata harvesting for ecology using large language models
@@ -11,7 +12,7 @@
 
 This repository contains a tool that harvests metadata from dataset landing pages.
 
-Our methods are described in more detail in [our paper](https://doi.org/10.1007/978-3-032-06136-2_32), and further data analysis and visualisation functions (used in the paper) are found in [a separate repo](https://github.com/LTER-LIFE/meta-knowledge-harvesting).
+Our methods are described in more detail in [our paper](https://doi.org/10.1007/978-3-032-06136-2_32), and further data analysis and visualisation functions (used in the paper) are found in [a separate repo](https://github.com/LTER-LIFE/meta-knowledge-harvesting). 
 
 
 ![diagram metadata harvester v3](https://github.com/user-attachments/assets/39af634b-c8be-4174-b0e9-43227148ee4e)
@@ -20,7 +21,7 @@ Our methods are described in more detail in [our paper](https://doi.org/10.1007/
 
 ## Getting started:
 
-Please see the installation instructions below. For quickly getting started, see the [`data-field-filling.ipynb`](examples/data-field-filling.ipynb) notebook. Alternatively, for a more detailed tutorial, please see our [Colab notebook tutorial](https://colab.research.google.com/drive/1N_lyPtHZucy6xu9msFfKk3dPtz3Z_Ife).
+Please see the installation instructions below. For quickly getting started, see the [`data-field-filling.ipynb`](examples/data-field-filling.ipynb) notebook. Alternatively, for a more detailed tutorial, please see our [Colab notebook tutorial](https://colab.research.google.com/drive/1N_lyPtHZucy6xu9msFfKk3dPtz3Z_Ife) and our [documentation](https://llm-metadata-harvester.readthedocs.io/en/latest/).
 
 ---
 
