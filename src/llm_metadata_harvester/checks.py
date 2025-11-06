@@ -21,6 +21,9 @@ def check_exist(extracted_metadata: dict, raw_input: str, threshold: float = 0.8
         if value is None:
             results[key] = False
             continue
+        if value == 'N/A':
+            results[key] = True
+            continue
         needle = str(value).strip().lower()
         if not needle:
             results[key] = False
@@ -74,6 +77,9 @@ def check_repeat_prompt(extracted_metadata: dict, metadata_definition: dict, thr
     for key, value in extracted_metadata.items():
         if key not in metadata_definition:
             raise ValueError(f"Key '{key}' not found in metadata_definition")
+        if value == 'N/A':
+            results[key] = False
+            continue
         
         metadata_definition_value = metadata_definition[key]
         hay = (metadata_definition_value or "").lower()
