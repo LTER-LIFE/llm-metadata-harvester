@@ -28,11 +28,16 @@ Please see the installation instructions below. For quickly getting started, see
 
 ```bash
 .
-├── src/                # Source code
+├── name/               # description
+├── docs/               # Documentation source and build files
+├── examples/           # Tutorial files for getting started
 ├── imgs/               # Images
-├── requirements.txt    # Python dependencies
+├── src/                # Source code
+├── tests/              # Unit tests
+├── webpages/           # Offline dataset webpages for demos
+├── llm_apikey.md       # Guide for setting up LLM API access.
+├── pyproject.toml      # Python dependencies
 └── README.md           # This file
-└── setup.py            # 
 ```
 
 ## Installation
