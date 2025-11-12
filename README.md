@@ -54,6 +54,11 @@ Please see the installation instructions below. For quickly getting started, see
 pip install llm-metadata-harvester
 ```
 
+If you want to install the scraper dependency, you can use
+```shell
+pip install "llm-metadata-harvester[scrape]"
+```
+
 ### Install for Development
 
 If you want to modify the code or contribute to the project:
