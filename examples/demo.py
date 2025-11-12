@@ -1,5 +1,10 @@
 """
-python3 examples/demo.py --api-key sk-xxxx --model-name gemini-2.5-flash-preview-05-20 --url https://stac.ecodatacube.eu/veg_quercus.robur_anv.eml/collection.json?.language=en --dump-format json --allow_retrying True
+python3 examples/demo.py \
+  --api-key sk-xxxx \
+  --model-name gemini-2.5-flash-preview-05-20 \
+  --url https://stac.ecodatacube.eu/veg_quercus.robur_anv.eml/collection.json?.language=en \
+  --dump-format json \
+  --allow_retrying False
 """
 import argparse
 import os
