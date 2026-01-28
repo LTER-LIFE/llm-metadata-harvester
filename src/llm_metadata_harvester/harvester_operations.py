@@ -446,6 +446,7 @@ def _post_processing_records(all_records: list[str],
 async def metadata_harvest(
         model_name: str,
         url: str,
+        api_key: str = None,
         metadata_standard: dict = LTER_LIFE_STANDARD,
         dump_format: str = "none",
         allow_retrying: bool = False,
@@ -464,6 +465,9 @@ async def metadata_harvest(
         The name of the language model to use for entity extraction.
     url : str
         The URL of the page from which to harvest metadata.
+    api_key : str, optional
+        API key associated with the language model/provider. If None the API key is assumed to be passed via
+        environment variables (default is  None). 
     metadata_standard : dict, optional
         A dictionary defining the metadata fields and their descriptions (default is LTER_LIFE_STANDARD).
     dump_format : str, optional
@@ -492,7 +496,7 @@ async def metadata_harvest(
 
     full_text = await extract_full_page_text(url)
     llm = LLMClient(model_name=model_name,
-                    temperature=0.0)
+                    temperature=0.0, api_key=api_key)
     
     print("Extracting entities from text...")
 
