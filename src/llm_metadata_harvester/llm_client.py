@@ -28,7 +28,7 @@ class LLMClient:
         elif model_name.startswith("surf"):
             # for surf models it should be named `surf-{actual_model_name}`
             self.provider = "surf"
-            self.model = model_name[5:].strip()  # Remove 'surf-' prefix
+            self.model = model_name.removeprefix("surf-")  # Remove 'surf-' prefix
             key = api_key or os.getenv("SURF_API_KEY")
             base_url = kwargs.get("base_url", "https://willma.surf.nl/api/v0")
             self.client = OpenAI(
