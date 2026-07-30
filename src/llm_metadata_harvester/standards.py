@@ -103,3 +103,23 @@ by IANA [IANA-MEDIA-TYPES].""",
 a non-negative integer) when the precise size is not known. While it is recommended that the size be
 given as an integer, alternative literals such as '1.5 MB' are sometimes used."""
 }
+
+
+def filter_metadata_standard(
+    metadata_standard: dict[str, str],
+    fields: list[str] | None = None,
+) -> dict[str, str]:
+    """Return the full standard or a validated subset of fields."""
+    if fields is None:
+        return metadata_standard
+
+    unknown_fields = [
+        field for field in fields if field not in metadata_standard
+    ]
+    if unknown_fields:
+        raise ValueError(
+            f"Unknown metadata field(s): {unknown_fields}. "
+            f"Available fields: {sorted(metadata_standard)}"
+        )
+
+    return {field: metadata_standard[field] for field in fields}

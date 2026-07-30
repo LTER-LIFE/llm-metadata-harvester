@@ -18,6 +18,7 @@ dependencies = [
     "playwright",
     "nest_asyncio",
     "pyyaml",
+    "pydantic>=2.0",
 ]
 
 [project.optional-dependencies]

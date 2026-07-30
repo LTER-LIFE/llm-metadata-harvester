@@ -159,6 +159,41 @@ class TestLLMClient:
         with pytest.raises(Exception, match="Gemini API Error"):
             client.chat(messages)
     
+    @patch('llm_metadata_harvester.llm_client.OpenAI')
+    @patch('llm_metadata_harvester.llm_client.os.getenv')
+    def test_chat_structured_openai(self, mock_getenv, mock_openai):
+        """Test API-level structured output with OpenAI"""
+        mock_getenv.return_value = "test_api_key"
+        mock_openai_instance = Mock()
+        mock_openai.return_value = mock_openai_instance
+
+        mock_response = Mock()
+        mock_response.choices = [Mock()]
+        mock_response.choices[0].message.content = '{"entities": []}'
+        mock_openai_instance.chat.completions.create.return_value = mock_response
+
+        client = LLMClient("gpt-4o")
+        messages = [{"role": "user", "content": "Hello"}]
+        schema = {
+            "type": "object",
+            "properties": {"entities": {"type": "array", "items": {"type": "object"}}},
+            "required": ["entities"],
+            "additionalProperties": False,
+        }
+
+        result = client.chat_structured(
+            messages,
+            schema_name="entity_extraction",
+            schema=schema,
+            max_tokens=1000,
+        )
+
+        assert result == {"entities": []}
+        mock_openai_instance.chat.completions.create.assert_called_once()
+        call_kwargs = mock_openai_instance.chat.completions.create.call_args.kwargs
+        assert call_kwargs["response_format"]["type"] == "json_schema"
+        assert call_kwargs["response_format"]["json_schema"]["name"] == "entity_extraction"
+
     @patch.dict('os.environ', {}, clear=True)
     @patch('llm_metadata_harvester.llm_client.OpenAI')
     def test_missing_api_key(self, mock_openai):

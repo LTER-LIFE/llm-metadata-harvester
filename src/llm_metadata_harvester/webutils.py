@@ -72,7 +72,7 @@ def downloadAndParseXML(url):
     
     return xml_str, root
 
-async def extract_full_page_text(url: str) -> str:
+async def extract_full_page_text(url: str, timeout: int = 30000) -> str:
     """
     Asynchronously extracts all visible text content from a web page.
 
@@ -84,6 +84,8 @@ async def extract_full_page_text(url: str) -> str:
     ----------
     url : str
         The URL of the webpage to extract text from.
+    timeout : int, optional
+        Maximum time in milliseconds to wait for page navigation. Default is 30000 (30 seconds).
 
     Returns
     -------
@@ -94,16 +96,36 @@ async def extract_full_page_text(url: str) -> str:
     ------
     ImportError
         If Playwright is not installed.
+    TimeoutError
+        If the page fails to load within the timeout period using all strategies.
 
     Examples
     --------
     >>> await extract_full_page_text("https://example.com")
+    >>> await extract_full_page_text("https://slow-site.com", timeout=60000)
     """
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=True)
         page = await browser.new_page()
 
-        await page.goto(url, wait_until='networkidle')
+        # Try different wait strategies in order of strictness
+        # 'networkidle' is ideal but some sites never reach it
+        wait_strategies = ['networkidle', 'load', 'domcontentloaded']
+        
+        for strategy in wait_strategies:
+            try:
+                await page.goto(url, wait_until=strategy, timeout=timeout)
+                break  # Success, exit the loop
+            except TimeoutError:
+                if strategy == wait_strategies[-1]:
+                    # Last strategy also failed, close browser and raise
+                    await browser.close()
+                    raise TimeoutError(
+                        f"Page failed to load within {timeout}ms using all strategies. "
+                        f"URL: {url}"
+                    )
+                # Try next strategy
+                continue
 
         await page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
         await page.wait_for_timeout(2000)
