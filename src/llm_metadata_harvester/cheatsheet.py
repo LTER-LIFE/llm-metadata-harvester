@@ -141,6 +141,48 @@ Text:
 ######################
 Output:"""
 
+CHEATSHEETS["fill_nightly_structured"] = """---Goal---
+Given a list of nightly_entities with metadata and their related source texts, fill in missing fields such as
+`entity_name` and `description` for each entity.
+Use {language} as output language.
+
+---Steps---
+1. For each entity, extract the following information from the text:
+- entity_name: Provide the specific name of the entity mentioned in the input text. This should be the actual name (e.g., "Microsoft", "Amazon River", "Mona Lisa") and not the generic entity type (e.g., "company", "river", "painting"). Use the same language as the input text. If the text is in English, capitalize the name.
+- entity_type: One of the provided types (do not change it).
+- description: A short explanation (1 sentence) of what this entity represents or does.
+
+Fill in the `<Nightly Entity Name>` and `<Nightly Inference>` placeholders with actual information or values in the input text.
+
+2. You must output the enriched entities as a JSON object with the following structure:
+{{
+  "entities": [
+    {{
+      "entity_name": "<entity_name>",
+      "entity_type": "<entity_type>",
+      "description": "<description>",
+      "source_id": "<source_id>",
+      "file_path": "<file_path>"
+    }}
+  ]
+}}
+
+    Output **only** valid JSON matching the schema above.
+    Do not include markdown code fences, comments, or any text outside the JSON object.
+    Include one object in the `entities` array for each entity you enriched.
+
+#############################
+---Real Data---
+######################
+---Data---
+Entities: {nightly_entities}
+Text:
+{input_text}
+######################
+
+######################
+Output:"""
+
 
 CHEATSHEETS["nightly_entity_template"] = """
 ("entity"{tuple_delimiter}"<Nightly Entity Name>"{tuple_delimiter}"Metadata date"{tuple_delimiter}"<Nightly Inference>"){record_delimiter}
@@ -207,6 +249,57 @@ The metadata information for each entity is embedded within the description text
     End the output with **{completion_delimiter}**.
     ⚠️ Do **not** use JSON, Python dictionaries, or nested data structures.
     The output must be a **flat string list**, matching the format exactly as shown below.
+
+#############################
+---Real Data---
+######################
+---Data---
+Input: {input_entities}
+
+######################
+Output:"""
+
+CHEATSHEETS["post_processing_structured"] = """
+---Goal---
+Given a list of entities with metadata and related descriptive texts, extract concise information for each entity.
+Use {language} as the output language even if input language is not in {language}.
+
+---Input Format---
+The input consists of a list of tuples in the following format:
+("entity"{tuple_delimiter}<entity_type>{tuple_delimiter}<entity_description>){record_delimiter}
+The metadata information for each entity is embedded within the description text.
+
+---Steps---
+1. For each tuple, identify the entity and analyze its corresponding description.
+2. From the description, extract the concise information relevant to the entity.
+    - If the description does not contain the relevant information, you **must** return "N/A".
+    - If the description contains multiple pieces of information, combine them into a single string.
+
+    Example:
+    Input: ("entity"<tuple_delimiter>"Unique Identifier"<tuple_delimiter>"No identifier is present in this description.")
+    Output:
+    {{
+      "entities": [
+        {{
+          "entity_type": "Unique Identifier",
+          "entity_info": "N/A"
+        }}
+      ]
+    }}
+
+3. Output the enriched list as a JSON object with the following structure:
+{{
+  "entities": [
+    {{
+      "entity_type": "<entity_type>",
+      "entity_info": "<entity_info>"
+    }}
+  ]
+}}
+
+    Output **only** valid JSON matching the schema above.
+    Do not include markdown code fences, comments, or any text outside the JSON object.
+    Include one object in the `entities` array for each input entity.
 
 #############################
 ---Real Data---

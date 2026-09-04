@@ -12,7 +12,7 @@ from llm_metadata_harvester.checks import check_exist, check_repeat_prompt
 from collections import defaultdict
 from llm_metadata_harvester.cheatsheet import CHEATSHEETS
 from llm_metadata_harvester.prompt import PROMPTS
-from llm_metadata_harvester.standards import LTER_LIFE_STANDARD
+from llm_metadata_harvester.standards import LTER_LIFE_STANDARD, filter_metadata_standard
 from typing import Union, Tuple
 
 import tiktoken
@@ -179,11 +179,29 @@ def _handle_post_processed_entity_extraction(
     Returns:
         dict: A dictionary containing the extracted entity information, or None if extraction fails
     """
-    if len(record_attributes) < 3 or record_attributes[0] != '"entity"':
+    if len(record_attributes) < 2:
         return None
 
+    if record_attributes[0].strip('"') == "entity":
+        if len(record_attributes) < 3:
+            return None
+        name_index = 1
+        value_index = 2
+    else:
+        # Some models omit the leading "entity" token in post-processing output.
+        name_index = 0
+        first_name = clean_str(record_attributes[0]).strip('"')
+        second_name = (
+            clean_str(record_attributes[1]).strip('"')
+            if len(record_attributes) > 1
+            else ""
+        )
+        value_index = 2 if len(record_attributes) > 2 and first_name == second_name else 1
+        if value_index >= len(record_attributes):
+            return None
+
     # Clean and validate entity name
-    entity_name = clean_str(record_attributes[1]).strip('"')
+    entity_name = clean_str(record_attributes[name_index]).strip('"')
     if not entity_name.strip():
         logger.warning(
             f"Entity extraction error: empty entity name in: {record_attributes}"
@@ -194,7 +212,7 @@ def _handle_post_processed_entity_extraction(
     entity_name = normalize_extracted_info(entity_name, is_entity=True)
 
     # Clean and validate entity type
-    entity_value = clean_str(record_attributes[2]).strip('"')
+    entity_value = clean_str(record_attributes[value_index]).strip('"')
     if not entity_value.strip() or entity_value.startswith('("'):
         logger.warning(
             f"Entity extraction error: invalid entity type in: {record_attributes}"
@@ -441,6 +459,24 @@ def _post_processing_records(all_records: list[str],
             final_nodes[if_entities["entity_name"]].append(if_entities)
             continue
 
+    if not final_nodes and maybe_nodes:
+        for entity_type, entities in maybe_nodes.items():
+            entity_type = entity_type.strip('"')
+            entity_value = ""
+            for entity in entities:
+                entity_value += entity["entity_name"] + ". " + entity["description"] + " "
+            entity_value = entity_value.strip()
+            if not entity_value:
+                continue
+            final_nodes[entity_type].append(
+                dict(
+                    entity_name=entity_type,
+                    entity_value=entity_value,
+                    source_id=chunk_key,
+                    file_path=file_path,
+                )
+            )
+
     return maybe_nodes, final_nodes
 
 async def metadata_harvest(
@@ -448,6 +484,7 @@ async def metadata_harvest(
         url: str,
         api_key: str = None,
         metadata_standard: dict = LTER_LIFE_STANDARD,
+        fields: list[str] | None = None,
         dump_format: str = "none",
         allow_retrying: bool = False,
     ) -> dict:
@@ -470,6 +507,9 @@ async def metadata_harvest(
         environment variables (default is  None). 
     metadata_standard : dict, optional
         A dictionary defining the metadata fields and their descriptions (default is LTER_LIFE_STANDARD).
+    fields : list[str], optional
+        Subset of field names from ``metadata_standard`` to extract. Raises ``ValueError`` if any
+        name is not present in the standard.
     dump_format : str, optional
         The format to dump the extracted metadata to a file. Must be one of 'json', 'yaml', or 'none' (default is 'none').
     allow_retrying : bool, optional
@@ -492,6 +532,7 @@ async def metadata_harvest(
     """
     if dump_format not in ["json", "yaml", "none"]:
         raise ValueError("dump_format must be one of 'json', 'yaml', or 'none'")
+    metadata_standard = filter_metadata_standard(metadata_standard, fields)
     print("Extracting full page text...")
 
     full_text = await extract_full_page_text(url)
